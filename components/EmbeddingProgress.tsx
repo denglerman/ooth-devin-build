@@ -16,7 +16,12 @@ export default function EmbeddingProgress() {
     if (isGenerating) return;
     setIsGenerating(true);
     try {
-      await fetch('/api/generate-embeddings', { method: 'POST' });
+      // Fire 3 parallel generation calls for faster processing
+      await Promise.all([
+        fetch('/api/generate-embeddings', { method: 'POST' }),
+        fetch('/api/generate-embeddings', { method: 'POST' }),
+        fetch('/api/generate-embeddings', { method: 'POST' }),
+      ]);
     } catch {
       // Silently fail
     } finally {

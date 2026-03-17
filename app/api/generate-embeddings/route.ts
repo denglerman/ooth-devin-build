@@ -8,13 +8,13 @@ export const dynamic = 'force-dynamic';
 
 export async function POST() {
   try {
-    // Get a small batch of contacts without embeddings
-    // Keep batch small to finish within Vercel's serverless timeout
+    // Get contacts without embeddings — process 50 per call
+    // OpenAI handles batch embedding efficiently in a single API call
     const { data: contacts, error } = await supabaseAdmin
       .from('contacts')
       .select('*')
       .is('embedding', null)
-      .limit(20);
+      .limit(50);
 
     if (error) {
       console.error('Fetch contacts error:', error);
