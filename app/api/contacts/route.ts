@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseAdmin, getAuthUser } from '@/lib/supabase';
 
 export async function DELETE() {
   try {
+    const user = await getAuthUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { error } = await supabaseAdmin
       .from('contacts')
       .delete()
-      .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all rows
+      .eq('user_id', user.id);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
@@ -24,6 +29,11 @@ export async function DELETE() {
 
 export async function GET(request: NextRequest) {
   try {
+    const user = await getAuthUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
@@ -34,7 +44,8 @@ export async function GET(request: NextRequest) {
       .from('contacts')
       .select('id, first_name, last_name, email, phone, company, job_title, source, created_at', {
         count: 'exact',
-      });
+      })
+      .eq('user_id', user.id);
 
     if (search) {
       query = query.or(

@@ -1,13 +1,19 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseAdmin, getAuthUser } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    const user = await getAuthUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { count: total, error: totalError } = await supabaseAdmin
       .from('contacts')
-      .select('id', { count: 'exact', head: true });
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id);
 
     if (totalError) {
       return NextResponse.json({ error: totalError.message }, { status: 500 });
@@ -17,6 +23,7 @@ export async function GET() {
     const { count: embedded, error: embeddedError } = await supabaseAdmin
       .from('contacts')
       .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
       .not('embedding', 'is', null);
 
     if (embeddedError) {

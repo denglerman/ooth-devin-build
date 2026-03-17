@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseAdmin, getAuthUser } from '@/lib/supabase';
 import { parseCSV } from '@/lib/csvParser';
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getAuthUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
 
@@ -21,7 +26,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get existing emails to skip duplicates
+    // Get existing emails to skip duplicates (for this user only)
     const emails = contacts
       .map((c) => c.email)
       .filter((e): e is string => e !== null && e !== '');
@@ -31,6 +36,7 @@ export async function POST(request: NextRequest) {
       const { data: existing } = await supabaseAdmin
         .from('contacts')
         .select('email')
+        .eq('user_id', user.id)
         .in('email', emails);
 
       existingEmails = new Set(
@@ -44,12 +50,18 @@ export async function POST(request: NextRequest) {
     );
     const duplicateCount = contacts.length - newContacts.length;
 
+    // Attach user_id to each contact
+    const contactsWithUser = newContacts.map((c) => ({
+      ...c,
+      user_id: user.id,
+    }));
+
     // Batch insert in chunks of 500
     const chunkSize = 500;
     let imported = 0;
 
-    for (let i = 0; i < newContacts.length; i += chunkSize) {
-      const chunk = newContacts.slice(i, i + chunkSize);
+    for (let i = 0; i < contactsWithUser.length; i += chunkSize) {
+      const chunk = contactsWithUser.slice(i, i + chunkSize);
       const { error } = await supabaseAdmin.from('contacts').insert(chunk);
 
       if (error) {
