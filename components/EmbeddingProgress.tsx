@@ -10,13 +10,19 @@ export default function EmbeddingProgress() {
   } | null>(null);
   const [isVisible, setIsVisible] = useState(false);
 
+  const [isGenerating, setIsGenerating] = useState(false);
+
   const triggerGeneration = useCallback(async () => {
+    if (isGenerating) return;
+    setIsGenerating(true);
     try {
       await fetch('/api/generate-embeddings', { method: 'POST' });
     } catch {
       // Silently fail
+    } finally {
+      setIsGenerating(false);
     }
-  }, []);
+  }, [isGenerating]);
 
   const checkStatus = useCallback(async () => {
     try {
@@ -26,7 +32,7 @@ export default function EmbeddingProgress() {
 
       if (data.total > 0 && !data.ready) {
         setIsVisible(true);
-        // Re-trigger embedding generation if there are unprocessed contacts
+        // Trigger embedding generation if not already in progress
         triggerGeneration();
       } else {
         setIsVisible(false);
@@ -38,7 +44,7 @@ export default function EmbeddingProgress() {
 
   useEffect(() => {
     checkStatus();
-    const interval = setInterval(checkStatus, 3000);
+    const interval = setInterval(checkStatus, 5000);
     return () => clearInterval(interval);
   }, [checkStatus]);
 

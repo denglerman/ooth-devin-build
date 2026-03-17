@@ -3,59 +3,66 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { contactToText, generateEmbeddings } from '@/lib/embeddings';
 import { Contact } from '@/lib/supabase';
 
-export const maxDuration = 300;
+export const maxDuration = 60;
+export const dynamic = 'force-dynamic';
 
 export async function POST() {
   try {
-    // Get contacts without embeddings (process up to 100 per invocation for serverless timeout safety)
+    // Get a small batch of contacts without embeddings
+    // Keep batch small to finish within Vercel's serverless timeout
     const { data: contacts, error } = await supabaseAdmin
       .from('contacts')
       .select('*')
       .is('embedding', null)
-      .limit(100);
+      .limit(20);
 
     if (error) {
+      console.error('Fetch contacts error:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     if (!contacts || contacts.length === 0) {
-      return NextResponse.json({ message: 'All contacts have embeddings', processed: 0, done: true });
+      return NextResponse.json({ processed: 0, done: true });
     }
 
-    const batchSize = 20;
     let processed = 0;
+    const batch = contacts as Contact[];
+    const texts = batch.map((c) => contactToText(c));
 
-    for (let i = 0; i < contacts.length; i += batchSize) {
-      const batch = contacts.slice(i, i + batchSize) as Contact[];
-      const texts = batch.map((c) => contactToText(c));
+    try {
+      const embeddings = await generateEmbeddings(texts);
 
-      try {
-        const embeddings = await generateEmbeddings(texts);
+      // Update all contacts in parallel for speed
+      const updatePromises = batch.map((contact, j) =>
+        supabaseAdmin
+          .from('contacts')
+          .update({ embedding: embeddings[j] as unknown as string })
+          .eq('id', contact.id)
+      );
 
-        for (let j = 0; j < batch.length; j++) {
-          const { error: updateError } = await supabaseAdmin
-            .from('contacts')
-            .update({ embedding: embeddings[j] as unknown as string })
-            .eq('id', batch[j].id);
+      const results = await Promise.all(updatePromises);
+      processed = results.filter((r) => !r.error).length;
 
-          if (updateError) {
-            console.error(`Failed to update embedding for ${batch[j].id}:`, updateError);
-          } else {
-            processed++;
-          }
-        }
-      } catch (embError) {
-        console.error('Embedding batch error:', embError);
+      const errors = results.filter((r) => r.error);
+      if (errors.length > 0) {
+        console.error('Some embedding updates failed:', errors.map((r) => r.error));
       }
+    } catch (embError) {
+      console.error('Embedding generation error:', embError);
+      return NextResponse.json({ error: 'Embedding generation failed', processed }, { status: 500 });
     }
 
-    // Check if there are more contacts to process
+    // Check remaining
     const { count: remaining } = await supabaseAdmin
       .from('contacts')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .is('embedding', null);
 
-    return NextResponse.json({ processed, total: contacts.length, remaining: remaining || 0, done: (remaining || 0) === 0 });
+    return NextResponse.json({
+      processed,
+      remaining: remaining || 0,
+      done: (remaining || 0) === 0,
+    });
   } catch (error) {
     console.error('Generate embeddings error:', error);
     return NextResponse.json(
