@@ -10,6 +10,14 @@ export default function EmbeddingProgress() {
   } | null>(null);
   const [isVisible, setIsVisible] = useState(false);
 
+  const triggerGeneration = useCallback(async () => {
+    try {
+      await fetch('/api/generate-embeddings', { method: 'POST' });
+    } catch {
+      // Silently fail
+    }
+  }, []);
+
   const checkStatus = useCallback(async () => {
     try {
       const response = await fetch('/api/embedding-status');
@@ -18,13 +26,15 @@ export default function EmbeddingProgress() {
 
       if (data.total > 0 && !data.ready) {
         setIsVisible(true);
+        // Re-trigger embedding generation if there are unprocessed contacts
+        triggerGeneration();
       } else {
         setIsVisible(false);
       }
     } catch {
       // Silently fail
     }
-  }, []);
+  }, [triggerGeneration]);
 
   useEffect(() => {
     checkStatus();

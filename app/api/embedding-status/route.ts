@@ -5,20 +5,22 @@ export async function GET() {
   try {
     const { count: total, error: totalError } = await supabaseAdmin
       .from('contacts')
-      .select('*', { count: 'exact', head: true });
+      .select('id', { count: 'exact', head: true });
 
     if (totalError) {
       return NextResponse.json({ error: totalError.message }, { status: 500 });
     }
 
-    const { count: embedded, error: embeddedError } = await supabaseAdmin
+    const { count: unembedded, error: unembeddedError } = await supabaseAdmin
       .from('contacts')
-      .select('*', { count: 'exact', head: true })
-      .not('embedding', 'is', null);
+      .select('id', { count: 'exact', head: true })
+      .is('embedding', null);
 
-    if (embeddedError) {
-      return NextResponse.json({ error: embeddedError.message }, { status: 500 });
+    if (unembeddedError) {
+      return NextResponse.json({ error: unembeddedError.message }, { status: 500 });
     }
+
+    const embedded = (total || 0) - (unembedded || 0);
 
     return NextResponse.json({
       total: total || 0,

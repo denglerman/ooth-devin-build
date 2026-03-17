@@ -7,19 +7,19 @@ export const maxDuration = 300;
 
 export async function POST() {
   try {
-    // Get contacts without embeddings
+    // Get contacts without embeddings (process up to 100 per invocation for serverless timeout safety)
     const { data: contacts, error } = await supabaseAdmin
       .from('contacts')
       .select('*')
       .is('embedding', null)
-      .limit(1000);
+      .limit(100);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     if (!contacts || contacts.length === 0) {
-      return NextResponse.json({ message: 'All contacts have embeddings', processed: 0 });
+      return NextResponse.json({ message: 'All contacts have embeddings', processed: 0, done: true });
     }
 
     const batchSize = 20;
@@ -49,7 +49,13 @@ export async function POST() {
       }
     }
 
-    return NextResponse.json({ processed, total: contacts.length });
+    // Check if there are more contacts to process
+    const { count: remaining } = await supabaseAdmin
+      .from('contacts')
+      .select('*', { count: 'exact', head: true })
+      .is('embedding', null);
+
+    return NextResponse.json({ processed, total: contacts.length, remaining: remaining || 0, done: (remaining || 0) === 0 });
   } catch (error) {
     console.error('Generate embeddings error:', error);
     return NextResponse.json(

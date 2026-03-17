@@ -43,21 +43,36 @@ export async function POST(request: NextRequest) {
       .not('embedding', 'is', null);
 
     if (!embeddedCount || embeddedCount === 0) {
-      // Fallback to full-text search
+      // Fallback to full-text search — split query into words for better matching
+      const words = query.split(/\s+/).filter((w: string) => w.length > 2);
+      const searchTerms = words.length > 0 ? words : [query];
+
+      // Build OR conditions for each word across all searchable fields
+      const orConditions = searchTerms
+        .flatMap((term: string) => [
+          `first_name.ilike.%${term}%`,
+          `last_name.ilike.%${term}%`,
+          `email.ilike.%${term}%`,
+          `company.ilike.%${term}%`,
+          `job_title.ilike.%${term}%`,
+          `topics.ilike.%${term}%`,
+          `ooth_notes.ilike.%${term}%`,
+          `original_notes.ilike.%${term}%`,
+        ])
+        .join(',');
+
       const { data: textResults } = await supabaseAdmin
         .from('contacts')
         .select(
           'id, first_name, last_name, email, phone, company, job_title, original_notes, source, where_met, when_met, how_met, topics, relationship_strength, ooth_notes'
         )
-        .or(
-          `first_name.ilike.%${query}%,last_name.ilike.%${query}%,email.ilike.%${query}%,company.ilike.%${query}%,job_title.ilike.%${query}%,topics.ilike.%${query}%,ooth_notes.ilike.%${query}%,original_notes.ilike.%${query}%`
-        )
+        .or(orConditions)
         .limit(30);
 
       return NextResponse.json({
         results: (textResults || []).map((c) => ({
           ...c,
-          reasoning: 'Matched by text search (embeddings not yet ready)',
+          reasoning: 'Matched by text search (embeddings still building — AI search will be available soon)',
         })),
         mode: 'text',
       });
