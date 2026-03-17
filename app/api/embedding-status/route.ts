@@ -24,11 +24,13 @@ export async function GET() {
 
     const embedded = (total || 0) - (unembedded || 0);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       total: total || 0,
       embedded: embedded || 0,
       ready: (total || 0) > 0 && total === embedded,
     });
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    return response;
   } catch (error) {
     console.error('Embedding status error:', error);
     return NextResponse.json(
