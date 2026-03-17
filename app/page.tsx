@@ -17,7 +17,12 @@ type Contact = {
   job_title: string | null;
   source: string | null;
   reasoning?: string;
+  degree?: number;
+  via_friend?: string | null;
+  via_friend_username?: string | null;
 };
+
+type NetworkFilter = 'mine' | 'all' | 'friends';
 
 type Toast = {
   message: string;
@@ -37,11 +42,13 @@ export default function Home() {
   const [hasMore, setHasMore] = useState(false);
   const [showDeleteAll, setShowDeleteAll] = useState(false);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
+  const [networkFilter, setNetworkFilter] = useState<NetworkFilter>('mine');
 
-  const fetchContacts = useCallback(async (pageNum: number = 1, append: boolean = false) => {
+  const fetchContacts = useCallback(async (pageNum: number = 1, append: boolean = false, filter?: NetworkFilter) => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/contacts?page=${pageNum}&limit=50`);
+      const activeFilter = filter ?? networkFilter;
+      const response = await fetch(`/api/contacts?page=${pageNum}&limit=50&filter=${activeFilter}`);
       const data = await response.json();
 
       if (append) {
@@ -56,7 +63,7 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [networkFilter]);
 
   useEffect(() => {
     fetchContacts();
@@ -75,7 +82,7 @@ export default function Home() {
       const response = await fetch('/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ query, includeNetwork: networkFilter !== 'mine' }),
       });
 
       const data = await response.json();
@@ -99,6 +106,13 @@ export default function Home() {
     setSearchMode(false);
     setPage(1);
     fetchContacts(1);
+  };
+
+  const handleFilterChange = (filter: NetworkFilter) => {
+    setNetworkFilter(filter);
+    setSearchMode(false);
+    setPage(1);
+    fetchContacts(1, false, filter);
   };
 
   const handleImportComplete = (result: { imported: number; skipped: number; source: string }) => {
@@ -193,6 +207,24 @@ export default function Home() {
           />
         </div>
 
+        {!searchMode && (
+          <div className="mb-6 flex items-center gap-2">
+            {(['mine', 'all', 'friends'] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => handleFilterChange(f)}
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                  networkFilter === f
+                    ? 'bg-navy text-white'
+                    : 'bg-card text-gray-500 hover:bg-gray-100'
+                }`}
+              >
+                {f === 'mine' ? 'My Contacts' : f === 'all' ? 'All Network' : 'Friends Only'}
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="mb-6 flex items-center justify-between">
           <p className="text-sm text-gray-400">
             {searchMode ? (
@@ -248,6 +280,8 @@ export default function Home() {
                   job_title={contact.job_title}
                   source={contact.source}
                   reasoning={contact.reasoning}
+                  degree={contact.degree}
+                  via_friend={contact.via_friend}
                 />
               ))}
             </div>

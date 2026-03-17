@@ -20,6 +20,10 @@ type ContactDetail = {
   relationship_strength: string | null;
   ooth_notes: string | null;
   created_at: string;
+  degree?: number;
+  via_friend?: string | null;
+  via_friend_username?: string | null;
+  read_only?: boolean;
 };
 
 export default function ContactDetailPage() {
@@ -159,6 +163,7 @@ export default function ContactDetailPage() {
 
   const fullName = `${firstName || ''} ${lastName || ''}`.trim() || 'Unknown';
   const initials = `${(firstName || '?')[0]}${(lastName || '?')[0]}`.toUpperCase();
+  const isReadOnly = contact.read_only === true;
 
   return (
     <div className="min-h-screen bg-white">
@@ -174,6 +179,14 @@ export default function ContactDetailPage() {
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-8">
+        {/* Degree badge and via attribution */}
+        {contact.degree === 2 && contact.via_friend && (
+          <div className="mb-6 px-4 py-3 bg-accent/5 border border-accent/20 rounded-xl flex items-center gap-2">
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-accent/10 text-accent">2nd</span>
+            <p className="text-sm text-gray-600">Shared by <span className="font-medium text-navy">{contact.via_friend}</span></p>
+          </div>
+        )}
+
         <div className="flex items-start gap-5 mb-8">
           <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
             <span className="text-accent font-bold text-xl">{initials}</span>
@@ -181,6 +194,15 @@ export default function ContactDetailPage() {
           <div className="flex-1">
             <div className="flex items-center gap-3 flex-wrap">
               <h2 className="text-3xl font-bold text-navy">{fullName}</h2>
+              {contact.degree && (
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                  contact.degree === 1
+                    ? 'bg-navy/10 text-navy'
+                    : 'bg-accent/10 text-accent'
+                }`}>
+                  {contact.degree === 1 ? '1st' : '2nd'}
+                </span>
+              )}
               {contact.source && (
                 <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-500 font-medium">{contact.source}</span>
               )}
@@ -192,32 +214,67 @@ export default function ContactDetailPage() {
 
         <div className="bg-card rounded-2xl p-6 mb-6">
           <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Contact Info</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-navy mb-1.5">First Name</label>
-              <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="First name" className="w-full px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
+          {isReadOnly ? (
+            <div className="space-y-3">
+              {(firstName || lastName) && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Name</label>
+                  <p className="text-sm text-navy">{fullName}</p>
+                </div>
+              )}
+              {email && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Email</label>
+                  <a href={`mailto:${email}`} className="text-sm text-navy hover:text-accent transition-colors">{email}</a>
+                </div>
+              )}
+              {phone && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Phone</label>
+                  <a href={`tel:${phone}`} className="text-sm text-navy hover:text-accent transition-colors">{phone}</a>
+                </div>
+              )}
+              {company && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Company</label>
+                  <p className="text-sm text-navy">{company}</p>
+                </div>
+              )}
+              {jobTitle && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Job Title</label>
+                  <p className="text-sm text-navy">{jobTitle}</p>
+                </div>
+              )}
             </div>
-            <div>
-              <label className="block text-sm font-medium text-navy mb-1.5">Last Name</label>
-              <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Last name" className="w-full px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-navy mb-1.5">First Name</label>
+                <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="First name" className="w-full px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-navy mb-1.5">Last Name</label>
+                <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Last name" className="w-full px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-navy mb-1.5">Email</label>
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@example.com" className="w-full px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-navy mb-1.5">Phone</label>
+                <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 (555) 000-0000" className="w-full px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-navy mb-1.5">Company</label>
+                <input type="text" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company name" className="w-full px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-navy mb-1.5">Job Title</label>
+                <input type="text" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} placeholder="Job title" className="w-full px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-navy mb-1.5">Email</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@example.com" className="w-full px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-navy mb-1.5">Phone</label>
-              <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 (555) 000-0000" className="w-full px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-navy mb-1.5">Company</label>
-              <input type="text" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company name" className="w-full px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-navy mb-1.5">Job Title</label>
-              <input type="text" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} placeholder="Job title" className="w-full px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
-            </div>
-          </div>
+          )}
           {contact.original_notes && (
             <div className="mt-4 pt-4 border-t border-gray-200">
               <label className="block text-sm font-medium text-navy mb-1.5">Original Notes</label>
@@ -226,6 +283,7 @@ export default function ContactDetailPage() {
           )}
         </div>
 
+        {!isReadOnly && (
         <div className="bg-card rounded-2xl p-6">
           <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-6">Ooth Context</h3>
           <div className="space-y-5">
@@ -275,6 +333,7 @@ export default function ContactDetailPage() {
             </div>
           </div>
         </div>
+        )}
       </main>
 
       {showDeleteConfirm && (
