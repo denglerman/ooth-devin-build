@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import ContactCard from '@/components/ContactCard';
 import SearchBar from '@/components/SearchBar';
 import ImportModal from '@/components/ImportModal';
@@ -161,6 +162,12 @@ export default function Home() {
                 Delete All
               </button>
             )}
+            <Link
+              href="/friends"
+              className="px-4 py-2.5 text-navy border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+            >
+              Friends
+            </Link>
             <button
               onClick={() => setIsImportOpen(true)}
               className="px-5 py-2.5 bg-accent text-white rounded-xl text-sm font-medium hover:bg-accent/90 transition-colors"
