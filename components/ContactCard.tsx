@@ -11,6 +11,8 @@ type ContactCardProps = {
   job_title: string | null;
   source?: string | null;
   reasoning?: string;
+  degree?: number;
+  via_friend?: string | null;
 };
 
 export default function ContactCard({
@@ -22,6 +24,8 @@ export default function ContactCard({
   job_title,
   source,
   reasoning,
+  degree,
+  via_friend,
 }: ContactCardProps) {
   const fullName = `${first_name || ''} ${last_name || ''}`.trim() || 'Unknown';
   const initials = `${(first_name || '?')[0]}${(last_name || '?')[0]}`.toUpperCase();
@@ -34,9 +38,20 @@ export default function ContactCard({
             <span className="text-accent font-semibold text-sm">{initials}</span>
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="font-semibold text-navy text-base truncate group-hover:text-accent transition-colors">
-              {fullName}
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-navy text-base truncate group-hover:text-accent transition-colors">
+                {fullName}
+              </h3>
+              {degree && (
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${
+                  degree === 1
+                    ? 'bg-navy/10 text-navy'
+                    : 'bg-accent/10 text-accent'
+                }`}>
+                  {degree === 1 ? '1st' : degree === 2 ? '2nd' : '3rd+'}
+                </span>
+              )}
+            </div>
             {job_title && (
               <p className="text-sm text-gray-500 truncate mt-0.5">{job_title}</p>
             )}
@@ -45,6 +60,9 @@ export default function ContactCard({
             )}
             {email && (
               <p className="text-xs text-gray-400 truncate mt-2">{email}</p>
+            )}
+            {via_friend && degree === 2 && (
+              <p className="text-xs text-accent/70 truncate mt-1">via {via_friend}</p>
             )}
           </div>
           {source && (
