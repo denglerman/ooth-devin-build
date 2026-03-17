@@ -92,3 +92,27 @@ export async function PUT(
     );
   }
 }
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { error } = await supabaseAdmin
+      .from('contacts')
+      .delete()
+      .eq('id', params.id);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Contact delete error:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete contact' },
+      { status: 500 }
+    );
+  }
+}

@@ -32,6 +32,8 @@ export default function Home() {
   const [searchMode, setSearchMode] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
+  const [showDeleteAll, setShowDeleteAll] = useState(false);
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
 
   const fetchContacts = useCallback(async (pageNum: number = 1, append: boolean = false) => {
     try {
@@ -113,17 +115,48 @@ export default function Home() {
     fetchContacts(nextPage, true);
   };
 
+  const handleDeleteAll = async () => {
+    setIsDeletingAll(true);
+    try {
+      const response = await fetch('/api/contacts', { method: 'DELETE' });
+      if (response.ok) {
+        setContacts([]);
+        setTotal(0);
+        setHasMore(false);
+        setPage(1);
+        showToast(`All contacts deleted`);
+      } else {
+        showToast('Failed to delete contacts', 'error');
+      }
+    } catch {
+      showToast('Failed to delete contacts', 'error');
+    } finally {
+      setIsDeletingAll(false);
+      setShowDeleteAll(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-navy tracking-tight">ooth</h1>
-          <button
-            onClick={() => setIsImportOpen(true)}
-            className="px-5 py-2.5 bg-accent text-white rounded-xl text-sm font-medium hover:bg-accent/90 transition-colors"
-          >
-            Import Contacts
-          </button>
+          <div className="flex items-center gap-3">
+            {total > 0 && (
+              <button
+                onClick={() => setShowDeleteAll(true)}
+                className="px-4 py-2.5 text-red-500 border border-red-200 rounded-xl text-sm font-medium hover:bg-red-50 transition-colors"
+              >
+                Delete All
+              </button>
+            )}
+            <button
+              onClick={() => setIsImportOpen(true)}
+              className="px-5 py-2.5 bg-accent text-white rounded-xl text-sm font-medium hover:bg-accent/90 transition-colors"
+            >
+              Import Contacts
+            </button>
+          </div>
         </div>
       </header>
 
@@ -211,6 +244,26 @@ export default function Home() {
 
       <ImportModal isOpen={isImportOpen} onClose={() => setIsImportOpen(false)} onImportComplete={handleImportComplete} />
       <EmbeddingProgress />
+
+      {showDeleteAll && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDeleteAll(false)} />
+          <div className="relative bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
+            <h3 className="text-lg font-bold text-navy mb-2">Delete All Contacts</h3>
+            <p className="text-gray-500 text-sm mb-6">
+              Are you sure you want to delete all {total.toLocaleString()} contacts? This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setShowDeleteAll(false)} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
+                Cancel
+              </button>
+              <button onClick={handleDeleteAll} disabled={isDeletingAll} className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-xl disabled:opacity-50 transition-colors">
+                {isDeletingAll ? 'Deleting...' : 'Delete All'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {toast && (
         <div className={`fixed bottom-6 left-6 z-50 px-5 py-3 rounded-2xl shadow-lg text-sm font-medium ${toast.type === 'success' ? 'bg-navy text-white' : 'bg-red-500 text-white'}`}>
