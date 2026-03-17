@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseAdmin, getAuthUser } from '@/lib/supabase';
 import { generateEmbedding } from '@/lib/embeddings';
 import Anthropic from '@anthropic-ai/sdk';
 
@@ -30,16 +30,22 @@ type MatchContact = {
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getAuthUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { query } = await request.json();
 
     if (!query || typeof query !== 'string') {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 });
     }
 
-    // Check if embeddings are ready
+    // Check if embeddings are ready (for this user's contacts)
     const { count: embeddedCount } = await supabaseAdmin
       .from('contacts')
       .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
       .not('embedding', 'is', null);
 
     if (!embeddedCount || embeddedCount === 0) {
@@ -66,6 +72,7 @@ export async function POST(request: NextRequest) {
         .select(
           'id, first_name, last_name, email, phone, company, job_title, original_notes, source, where_met, when_met, how_met, topics, relationship_strength, ooth_notes'
         )
+        .eq('user_id', user.id)
         .or(orConditions)
         .limit(30);
 
@@ -81,12 +88,12 @@ export async function POST(request: NextRequest) {
     // Generate embedding for query
     const queryEmbedding = await generateEmbedding(query);
 
-    // Call Supabase match_contacts function
-    const { data: matches, error: matchError } = await supabaseAdmin.rpc(
+    // Call Supabase match_contacts function then filter by user_id
+    const { data: allMatches, error: matchError } = await supabaseAdmin.rpc(
       'match_contacts',
       {
         query_embedding: queryEmbedding,
-        match_count: 30,
+        match_count: 100,
       }
     );
 
@@ -97,6 +104,20 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Filter to only this user's contacts and take top 30
+    const userContactIds = new Set<string>();
+    const { data: userContacts } = await supabaseAdmin
+      .from('contacts')
+      .select('id')
+      .eq('user_id', user.id);
+    if (userContacts) {
+      for (const c of userContacts) userContactIds.add(c.id);
+    }
+
+    const matches = (allMatches || []).filter(
+      (m: MatchContact) => userContactIds.has(m.id)
+    ).slice(0, 30);
 
     if (!matches || matches.length === 0) {
       return NextResponse.json({ results: [], mode: 'ai' });

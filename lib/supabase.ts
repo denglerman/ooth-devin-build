@@ -1,14 +1,49 @@
 import { createClient } from '@supabase/supabase-js';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
+// Admin client — bypasses RLS, for server-only operations like embedding generation
 export const supabaseAdmin = supabaseServiceKey
   ? createClient(supabaseUrl, supabaseServiceKey)
-  : supabase;
+  : createClient(supabaseUrl, supabaseAnonKey);
+
+// Server client — respects RLS, reads auth cookies from the request
+export function createSupabaseServerClient() {
+  const cookieStore = cookies();
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      get(name: string) {
+        return cookieStore.get(name)?.value;
+      },
+      set(name: string, value: string, options: CookieOptions) {
+        try {
+          cookieStore.set({ name, value, ...options });
+        } catch {
+          // This can happen in Server Components where cookies can't be set
+        }
+      },
+      remove(name: string, options: CookieOptions) {
+        try {
+          cookieStore.set({ name, value: '', ...options });
+        } catch {
+          // This can happen in Server Components
+        }
+      },
+    },
+  });
+}
+
+// Helper to get the authenticated user from the server client
+export async function getAuthUser() {
+  const supabase = createSupabaseServerClient();
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) return null;
+  return user;
+}
 
 export type Contact = {
   id: string;

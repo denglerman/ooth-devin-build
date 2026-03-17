@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseAdmin, getAuthUser } from '@/lib/supabase';
 import { contactToText, generateEmbeddings } from '@/lib/embeddings';
 import { Contact } from '@/lib/supabase';
 
@@ -8,11 +8,16 @@ export const dynamic = 'force-dynamic';
 
 export async function POST() {
   try {
-    // Get contacts without embeddings — process 50 per call
-    // OpenAI handles batch embedding efficiently in a single API call
+    const user = await getAuthUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get contacts without embeddings for this user — process 50 per call
     const { data: contacts, error } = await supabaseAdmin
       .from('contacts')
       .select('*')
+      .eq('user_id', user.id)
       .is('embedding', null)
       .limit(50);
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import ContactCard from '@/components/ContactCard';
 import SearchBar from '@/components/SearchBar';
 import ImportModal from '@/components/ImportModal';
@@ -23,6 +24,7 @@ type Toast = {
 };
 
 export default function Home() {
+  const router = useRouter();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -115,6 +117,15 @@ export default function Home() {
     fetchContacts(nextPage, true);
   };
 
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      router.push('/login');
+    } catch {
+      showToast('Failed to log out', 'error');
+    }
+  };
+
   const handleDeleteAll = async () => {
     setIsDeletingAll(true);
     try {
@@ -155,6 +166,12 @@ export default function Home() {
               className="px-5 py-2.5 bg-accent text-white rounded-xl text-sm font-medium hover:bg-accent/90 transition-colors"
             >
               Import Contacts
+            </button>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2.5 text-gray-500 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+            >
+              Log Out
             </button>
           </div>
         </div>
