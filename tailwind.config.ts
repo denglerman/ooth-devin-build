@@ -9,8 +9,18 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        background: "#FFFFFF",
+        foreground: "#1A1A2E",
+        navy: "#1A1A2E",
+        accent: "#E94560",
+        card: "#F5F5F7",
+      },
+      fontFamily: {
+        sans: ["var(--font-inter)", "system-ui", "-apple-system", "sans-serif"],
+      },
+      boxShadow: {
+        card: "0 2px 8px rgba(0,0,0,0.06)",
+        "card-hover": "0 4px 16px rgba(0,0,0,0.10)",
       },
     },
   },
