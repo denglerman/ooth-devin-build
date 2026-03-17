@@ -13,28 +13,20 @@ export async function GET() {
       return NextResponse.json({ error: totalError.message }, { status: 500 });
     }
 
-    const { count: unembedded, error: unembeddedError } = await supabaseAdmin
-      .from('contacts')
-      .select('id', { count: 'exact', head: true })
-      .is('embedding', null);
-
-    if (unembeddedError) {
-      return NextResponse.json({ error: unembeddedError.message }, { status: 500 });
-    }
-
-    // Also count contacts WITH embeddings directly for cross-check
-    const { count: withEmbedding, error: withError } = await supabaseAdmin
+    // Use .not('embedding', 'is', null) — .is('embedding', null) is unreliable for vector columns
+    const { count: embedded, error: embeddedError } = await supabaseAdmin
       .from('contacts')
       .select('id', { count: 'exact', head: true })
       .not('embedding', 'is', null);
 
-    const embedded = withEmbedding ?? ((total || 0) - (unembedded || 0));
+    if (embeddedError) {
+      return NextResponse.json({ error: embeddedError.message }, { status: 500 });
+    }
 
     const response = NextResponse.json({
       total: total || 0,
       embedded: embedded || 0,
       ready: (total || 0) > 0 && embedded === total,
-      debug: { unembedded, withEmbedding, withError: withError?.message },
     });
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
     return response;
