@@ -7,6 +7,7 @@ import ContactCard from '@/components/ContactCard';
 import SearchBar from '@/components/SearchBar';
 import ImportModal from '@/components/ImportModal';
 import EmbeddingProgress from '@/components/EmbeddingProgress';
+import ThemeToggle from '@/components/ThemeToggle';
 
 type Contact = {
   id: string;
@@ -163,22 +164,22 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-gray-100">
+    <div className="min-h-screen bg-white dark:bg-[#0f0f1a]">
+      <header className="sticky top-0 z-30 bg-white/80 dark:bg-[#0f0f1a]/80 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-navy tracking-tight">ooth</h1>
+          <h1 className="text-2xl font-bold text-navy dark:text-white tracking-tight">ooth</h1>
           <div className="flex items-center gap-3">
             {total > 0 && (
               <button
                 onClick={() => setShowDeleteAll(true)}
-                className="px-4 py-2.5 text-red-500 border border-red-200 rounded-xl text-sm font-medium hover:bg-red-50 transition-colors"
+                className="px-4 py-2.5 text-red-500 border border-red-200 dark:border-red-800 rounded-xl text-sm font-medium hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
               >
                 Delete All
               </button>
             )}
             <Link
               href="/friends"
-              className="px-4 py-2.5 text-navy border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+              className="px-4 py-2.5 text-navy dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               Friends
             </Link>
@@ -188,9 +189,10 @@ export default function Home() {
             >
               Import Contacts
             </button>
+            <ThemeToggle />
             <button
               onClick={handleLogout}
-              className="px-4 py-2.5 text-gray-500 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+              className="px-4 py-2.5 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               Log Out
             </button>
@@ -216,7 +218,7 @@ export default function Home() {
                 className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                   networkFilter === f
                     ? 'bg-navy text-white'
-                    : 'bg-card text-gray-500 hover:bg-gray-100'
+                    : 'bg-card dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`}
               >
                 {f === 'mine' ? 'My Contacts' : f === 'all' ? 'All Network' : 'Friends Only'}
@@ -226,7 +228,7 @@ export default function Home() {
         )}
 
         <div className="mb-6 flex items-center justify-between">
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-gray-400 dark:text-gray-500">
             {searchMode ? (
               <>{total} result{total !== 1 ? 's' : ''} found</>
             ) : (
@@ -236,7 +238,7 @@ export default function Home() {
           {searchMode && (
             <button
               onClick={handleClearSearch}
-              className="text-sm text-accent hover:text-accent/80 font-medium transition-colors"
+              className="text-sm text-accent hover:text-accent/80 font-medium transition-colors dark:text-accent"
             >
               Clear search
             </button>
@@ -252,13 +254,13 @@ export default function Home() {
           </div>
         ) : contacts.length === 0 ? (
           <div className="text-center py-20">
-            <div className="w-16 h-16 rounded-full bg-card mx-auto mb-4 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-card dark:bg-gray-800 mx-auto mb-4 flex items-center justify-center">
               <svg className="h-8 w-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>
-            <h2 className="text-xl font-semibold text-navy mb-2">No contacts yet</h2>
-            <p className="text-gray-400 mb-6">Import your contacts from Google or LinkedIn to get started.</p>
+            <h2 className="text-xl font-semibold text-navy dark:text-white mb-2">No contacts yet</h2>
+            <p className="text-gray-400 dark:text-gray-500 mb-6">Import your contacts from Google or LinkedIn to get started.</p>
             <button
               onClick={() => setIsImportOpen(true)}
               className="px-6 py-3 bg-accent text-white rounded-xl text-sm font-medium hover:bg-accent/90 transition-colors"
@@ -290,7 +292,7 @@ export default function Home() {
                 <button
                   onClick={handleLoadMore}
                   disabled={isLoading}
-                  className="px-6 py-3 bg-card text-navy rounded-xl text-sm font-medium hover:bg-gray-100 disabled:opacity-50 transition-colors"
+                  className="px-6 py-3 bg-card dark:bg-gray-800 text-navy dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
                 >
                   {isLoading ? 'Loading...' : 'Load More'}
                 </button>
@@ -306,13 +308,13 @@ export default function Home() {
       {showDeleteAll && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDeleteAll(false)} />
-          <div className="relative bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
-            <h3 className="text-lg font-bold text-navy mb-2">Delete All Contacts</h3>
-            <p className="text-gray-500 text-sm mb-6">
+          <div className="relative bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
+            <h3 className="text-lg font-bold text-navy dark:text-white mb-2">Delete All Contacts</h3>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
               Are you sure you want to delete all {total.toLocaleString()} contacts? This action cannot be undone.
             </p>
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setShowDeleteAll(false)} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
+              <button onClick={() => setShowDeleteAll(false)} className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors">
                 Cancel
               </button>
               <button onClick={handleDeleteAll} disabled={isDeletingAll} className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-xl disabled:opacity-50 transition-colors">

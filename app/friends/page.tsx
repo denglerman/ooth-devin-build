@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import ThemeToggle from '@/components/ThemeToggle';
 
 type Friend = {
   id: string;
@@ -103,14 +104,14 @@ export default function FriendsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-gray-100">
+    <div className="min-h-screen bg-white dark:bg-[#0f0f1a]">
+      <header className="sticky top-0 z-30 bg-white/80 dark:bg-[#0f0f1a]/80 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold text-navy tracking-tight">ooth</Link>
+          <Link href="/" className="text-2xl font-bold text-navy dark:text-white tracking-tight">ooth</Link>
           <div className="flex items-center gap-3">
             <Link
               href="/"
-              className="px-4 py-2.5 text-navy border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+              className="px-4 py-2.5 text-navy dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               Contacts
             </Link>
@@ -120,9 +121,10 @@ export default function FriendsPage() {
             >
               Friends
             </Link>
+            <ThemeToggle />
             <button
               onClick={handleLogout}
-              className="px-4 py-2.5 text-gray-500 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+              className="px-4 py-2.5 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               Log Out
             </button>
@@ -131,11 +133,11 @@ export default function FriendsPage() {
       </header>
 
       <main className="max-w-2xl mx-auto px-6 py-8">
-        <h2 className="text-xl font-bold text-navy mb-6">Friends</h2>
+        <h2 className="text-xl font-bold text-navy dark:text-white mb-6">Friends</h2>
 
         {/* Add Friend Form */}
         <form onSubmit={handleAddFriend} className="mb-8">
-          <label className="block text-sm font-medium text-navy mb-2">Add a friend by username</label>
+          <label className="block text-sm font-medium text-navy dark:text-gray-300 mb-2">Add a friend by username</label>
           <div className="flex gap-3">
             <input
               type="text"
@@ -146,7 +148,7 @@ export default function FriendsPage() {
                 setSuccess('');
               }}
               placeholder="Enter username"
-              className="flex-1 px-4 py-2.5 bg-card rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm"
+              className="flex-1 px-4 py-2.5 bg-card dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 text-navy dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm"
             />
             <button
               type="submit"
@@ -170,31 +172,31 @@ export default function FriendsPage() {
           </div>
         ) : friends.length === 0 ? (
           <div className="text-center py-12">
-            <div className="w-16 h-16 rounded-full bg-card mx-auto mb-4 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-card dark:bg-gray-800 mx-auto mb-4 flex items-center justify-center">
               <svg className="h-8 w-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-navy mb-2">No friends yet</h3>
-            <p className="text-gray-400 text-sm">Add friends by their username above.</p>
+            <h3 className="text-lg font-semibold text-navy dark:text-white mb-2">No friends yet</h3>
+            <p className="text-gray-400 dark:text-gray-500 text-sm">Add friends by their username above.</p>
           </div>
         ) : (
           <div className="space-y-3">
-            <p className="text-sm text-gray-400 mb-4">{friends.length} friend{friends.length !== 1 ? 's' : ''}</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">{friends.length} friend{friends.length !== 1 ? 's' : ''}</p>
             {friends.map((friend) => (
               <div
                 key={friend.id}
-                className="flex items-center justify-between p-4 bg-card rounded-xl"
+                className="flex items-center justify-between p-4 bg-card dark:bg-gray-800/50 rounded-xl"
               >
                 <div>
-                  <p className="text-sm font-medium text-navy">@{friend.username}</p>
+                  <p className="text-sm font-medium text-navy dark:text-white">@{friend.username}</p>
                   {friend.full_name && (
-                    <p className="text-xs text-gray-400 mt-0.5">{friend.full_name}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{friend.full_name}</p>
                   )}
                 </div>
                 <button
                   onClick={() => handleRemoveFriend(friend.id, friend.username)}
-                  className="px-3 py-1.5 text-red-500 border border-red-200 rounded-lg text-xs font-medium hover:bg-red-50 transition-colors"
+                  className="px-3 py-1.5 text-red-500 border border-red-200 dark:border-red-800 rounded-lg text-xs font-medium hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
                 >
                   Remove
                 </button>

@@ -97,64 +97,64 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-6">
+    <div className="min-h-screen bg-white dark:bg-[#0f0f1a] flex items-center justify-center px-6">
       <div className="w-full max-w-sm">
-        <h1 className="text-3xl font-bold text-navy text-center mb-2">ooth</h1>
-        <p className="text-gray-400 text-center text-sm mb-8">Create your account</p>
+        <h1 className="text-3xl font-bold text-navy dark:text-white text-center mb-2">ooth</h1>
+        <p className="text-gray-400 dark:text-gray-500 text-center text-sm mb-8">Create your account</p>
 
         <form onSubmit={handleSignup} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-navy mb-1.5">Username</label>
+            <label className="block text-sm font-medium text-navy dark:text-gray-300 mb-1.5">Username</label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="letters, numbers, underscores"
               required
-              className="w-full px-4 py-2.5 bg-card rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm"
+              className="w-full px-4 py-2.5 bg-card dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 text-navy dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-navy mb-1.5">Full Name</label>
+            <label className="block text-sm font-medium text-navy dark:text-gray-300 mb-1.5">Full Name</label>
             <input
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Your full name (optional)"
-              className="w-full px-4 py-2.5 bg-card rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm"
+              className="w-full px-4 py-2.5 bg-card dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 text-navy dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-navy mb-1.5">Email</label>
+            <label className="block text-sm font-medium text-navy dark:text-gray-300 mb-1.5">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               required
-              className="w-full px-4 py-2.5 bg-card rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm"
+              className="w-full px-4 py-2.5 bg-card dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 text-navy dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-navy mb-1.5">Password</label>
+            <label className="block text-sm font-medium text-navy dark:text-gray-300 mb-1.5">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="At least 6 characters"
               required
-              className="w-full px-4 py-2.5 bg-card rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm"
+              className="w-full px-4 py-2.5 bg-card dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 text-navy dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-navy mb-1.5">Confirm Password</label>
+            <label className="block text-sm font-medium text-navy dark:text-gray-300 mb-1.5">Confirm Password</label>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirm your password"
               required
-              className="w-full px-4 py-2.5 bg-card rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm"
+              className="w-full px-4 py-2.5 bg-card dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 text-navy dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm"
             />
           </div>
 
@@ -171,7 +171,7 @@ export default function SignupPage() {
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-400 mt-6">
+        <p className="text-center text-sm text-gray-400 dark:text-gray-500 mt-6">
           Already have an account?{' '}
           <Link href="/login" className="text-accent hover:text-accent/80 font-medium transition-colors">
             Sign in
