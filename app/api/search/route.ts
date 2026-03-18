@@ -151,6 +151,10 @@ Only include genuinely relevant contacts. Return JSON only.`;
         .replace(/```\n?/g, '')
         .trim();
       rankedResults = JSON.parse(cleanedText);
+      if (!Array.isArray(rankedResults)) {
+        console.error('Claude response is not an array:', typeof rankedResults);
+        return NextResponse.json({ results: [], mode: 'ai' });
+      }
     } catch {
       console.error('Failed to parse Claude response:', responseText);
       return NextResponse.json({ results: [], mode: 'ai' });
