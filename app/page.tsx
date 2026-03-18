@@ -45,6 +45,7 @@ export default function Home() {
   const [networkFilter, setNetworkFilter] = useState<NetworkFilter>('mine');
   const [searchWarning, setSearchWarning] = useState<string | null>(null);
   const [contactLimitWarning, setContactLimitWarning] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   const networkFilterRef = useRef<NetworkFilter>(networkFilter);
   networkFilterRef.current = networkFilter;
@@ -94,6 +95,7 @@ export default function Home() {
   const handleSearch = async (query: string) => {
     setIsSearching(true);
     setSearchMode(true);
+    setSearchQuery(query);
 
     try {
       const response = await fetch('/api/search', {
@@ -123,6 +125,7 @@ export default function Home() {
   const handleClearSearch = () => {
     setSearchMode(false);
     setSearchWarning(null);
+    setSearchQuery('');
     setPage(1);
     fetchContacts(1);
   };
@@ -289,14 +292,23 @@ export default function Home() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>
-            <h2 className="text-xl font-semibold text-navy dark:text-white mb-2">No contacts yet</h2>
-            <p className="text-gray-400 dark:text-gray-500 mb-6">Import your contacts from Google or LinkedIn to get started.</p>
-            <button
-              onClick={() => setIsImportOpen(true)}
-              className="px-6 py-3 bg-accent text-white rounded-xl text-sm font-medium hover:bg-accent/90 transition-colors"
-            >
-              Import Contacts
-            </button>
+            {searchMode ? (
+              <>
+                <h2 className="text-xl font-semibold text-navy dark:text-white mb-2">No contacts found for &apos;{searchQuery}&apos;</h2>
+                <p className="text-gray-400 dark:text-gray-500 mb-6">Try searching by name, company, job title, or where you met someone.</p>
+              </>
+            ) : (
+              <>
+                <h2 className="text-xl font-semibold text-navy dark:text-white mb-2">No contacts yet</h2>
+                <p className="text-gray-400 dark:text-gray-500 mb-6">Import your contacts from Google or LinkedIn to get started.</p>
+                <button
+                  onClick={() => setIsImportOpen(true)}
+                  className="px-6 py-3 bg-accent text-white rounded-xl text-sm font-medium hover:bg-accent/90 transition-colors"
+                >
+                  Import Contacts
+                </button>
+              </>
+            )}
           </div>
         ) : (
           <>
