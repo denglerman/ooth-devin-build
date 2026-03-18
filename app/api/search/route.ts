@@ -255,13 +255,21 @@ Return JSON only, no other text.`;
       rankedResults = JSON.parse(cleanedText);
     } catch {
       console.error('Failed to parse Claude response:', responseText);
-      // Fallback: return matches with generic reasoning
+      // Fallback: return matches with generic reasoning + degree info
       return NextResponse.json({
         results: (matches as MatchContact[]).slice(0, 10).map(
-          (c) => ({
-            ...c,
-            reasoning: 'Semantically similar to your search query',
-          })
+          (c) => {
+            const ownerId = contactOwnerMap.get(c.id);
+            const isOwn = ownerId === user.id;
+            const friendProfile = !isOwn && ownerId ? friendProfileMap.get(ownerId) : null;
+            return {
+              ...c,
+              reasoning: 'Semantically similar to your search query',
+              degree: isOwn ? 1 : 2,
+              via_friend: friendProfile?.full_name || friendProfile?.username || null,
+              via_friend_username: friendProfile?.username || null,
+            };
+          }
         ),
         mode: 'ai',
       });
