@@ -78,14 +78,13 @@ export async function POST(request: NextRequest) {
     let profile = null;
 
     if (isEmail) {
-      // Look up by email in auth.users, then get their profile
-      const { data: authData } = await supabaseAdmin.auth.admin.listUsers();
-      const authUser = authData?.users?.find((u) => u.email?.toLowerCase() === input);
-      if (authUser) {
+      // Look up by email using DB function (queries auth.users directly, no pagination issues)
+      const { data: userId } = await supabaseAdmin.rpc('get_user_id_by_email', { lookup_email: input });
+      if (userId) {
         const { data } = await supabaseAdmin
           .from('profiles')
           .select('id, username, full_name')
-          .eq('id', authUser.id)
+          .eq('id', userId)
           .single();
         profile = data;
       }
