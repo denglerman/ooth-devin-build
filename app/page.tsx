@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ContactCard from '@/components/ContactCard';
@@ -44,10 +44,13 @@ export default function Home() {
   const [isDeletingAll, setIsDeletingAll] = useState(false);
   const [networkFilter, setNetworkFilter] = useState<NetworkFilter>('mine');
 
+  const networkFilterRef = useRef<NetworkFilter>(networkFilter);
+  networkFilterRef.current = networkFilter;
+
   const fetchContacts = useCallback(async (pageNum: number = 1, append: boolean = false, filter?: NetworkFilter) => {
     try {
       setIsLoading(true);
-      const activeFilter = filter ?? networkFilter;
+      const activeFilter = filter ?? networkFilterRef.current;
       const response = await fetch(`/api/contacts?page=${pageNum}&limit=50&filter=${activeFilter}`);
       const data = await response.json();
 
@@ -63,7 +66,7 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  }, [networkFilter]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     fetchContacts();

@@ -88,7 +88,9 @@ export default function SignupPage() {
 
       if (profileError) {
         console.error('Profile creation error:', profileError);
-        // Don't block signup if profile creation fails
+        setError('Account created but profile setup failed. Please try logging in — if the issue persists, contact support.');
+        setIsLoading(false);
+        return;
       }
     }
 
