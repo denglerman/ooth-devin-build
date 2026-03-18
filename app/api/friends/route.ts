@@ -58,7 +58,7 @@ export async function GET() {
   }
 }
 
-// POST /api/friends — add friend by username
+// POST /api/friends — add friend by username or email
 export async function POST(request: NextRequest) {
   try {
     const user = await getAuthUser();
@@ -69,18 +69,40 @@ export async function POST(request: NextRequest) {
     const { username } = await request.json();
 
     if (!username || typeof username !== 'string') {
-      return NextResponse.json({ error: 'Username is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Username or email is required' }, { status: 400 });
     }
 
-    // Find the user by username
-    const { data: profile, error: profileError } = await supabaseAdmin
-      .from('profiles')
-      .select('id, username, full_name')
-      .eq('username', username.trim().toLowerCase())
-      .single();
+    const input = username.trim().toLowerCase();
+    const isEmail = input.includes('@');
 
-    if (profileError || !profile) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    let profile = null;
+
+    if (isEmail) {
+      // Look up by email in auth.users, then get their profile
+      const { data: authData } = await supabaseAdmin.auth.admin.listUsers();
+      const authUser = authData?.users?.find((u) => u.email?.toLowerCase() === input);
+      if (authUser) {
+        const { data } = await supabaseAdmin
+          .from('profiles')
+          .select('id, username, full_name')
+          .eq('id', authUser.id)
+          .single();
+        profile = data;
+      }
+    }
+
+    if (!profile) {
+      // Fall back to username lookup
+      const { data } = await supabaseAdmin
+        .from('profiles')
+        .select('id, username, full_name')
+        .eq('username', input)
+        .single();
+      profile = data;
+    }
+
+    if (!profile) {
+      return NextResponse.json({ error: 'User not found. Try their username or email.' }, { status: 404 });
     }
 
     // Can't friend yourself

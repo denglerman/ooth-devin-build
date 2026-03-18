@@ -135,7 +135,7 @@ export default function FriendsPage() {
 
         {/* Add Friend Form */}
         <form onSubmit={handleAddFriend} className="mb-8">
-          <label className="block text-sm font-medium text-navy mb-2">Add a friend by username</label>
+          <label className="block text-sm font-medium text-navy mb-2">Add a friend by username or email</label>
           <div className="flex gap-3">
             <input
               type="text"
@@ -145,7 +145,7 @@ export default function FriendsPage() {
                 setError('');
                 setSuccess('');
               }}
-              placeholder="Enter username"
+              placeholder="Enter username or email"
               className="flex-1 px-4 py-2.5 bg-card rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm"
             />
             <button
@@ -176,7 +176,7 @@ export default function FriendsPage() {
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-navy mb-2">No friends yet</h3>
-            <p className="text-gray-400 text-sm">Add friends by their username above.</p>
+            <p className="text-gray-400 text-sm">Add friends by their username or email above.</p>
           </div>
         ) : (
           <div className="space-y-3">
