@@ -46,8 +46,6 @@ export default function ImportModal({ isOpen, onClose, onImportComplete }: Impor
           source: data.source,
         });
 
-        // Trigger embedding generation in background
-        fetch('/api/generate-embeddings', { method: 'POST' }).catch(console.error);
       } catch {
         setError('Failed to upload file. Please try again.');
       } finally {

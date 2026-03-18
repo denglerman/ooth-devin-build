@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin, getAuthUser } from '@/lib/supabase';
-import { contactToText, generateEmbedding } from '@/lib/embeddings';
 
 export async function GET(
   _request: NextRequest,
@@ -121,18 +120,6 @@ export async function PUT(
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    // Regenerate embedding for this contact in background
-    try {
-      const text = contactToText(data);
-      const embedding = await generateEmbedding(text);
-      await supabaseAdmin
-        .from('contacts')
-        .update({ embedding: embedding as unknown as string })
-        .eq('id', params.id);
-    } catch (embError) {
-      console.error('Failed to regenerate embedding:', embError);
     }
 
     return NextResponse.json(data);
