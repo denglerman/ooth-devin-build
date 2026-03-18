@@ -114,20 +114,50 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Generate embedding for query
+    // Hybrid search: run vector search AND text search in parallel, then merge
     const queryEmbedding = await generateEmbedding(query);
 
-    // Call Supabase match_contacts function then filter by allowed user IDs
-    const { data: allMatches, error: matchError } = await supabaseAdmin.rpc(
-      'match_contacts',
-      {
+    // Extract meaningful search terms for text matching
+    const stopWords = new Set(['people', 'person', 'who', 'that', 'work', 'works', 'worked', 'working', 'at', 'in', 'the', 'a', 'an', 'is', 'are', 'was', 'were', 'for', 'with', 'from', 'and', 'or', 'of', 'to', 'do', 'does', 'did', 'have', 'has', 'had', 'my', 'their', 'our', 'know', 'knows', 'knew', 'met', 'meet', 'find', 'search', 'look', 'looking']);
+    const queryWords = query.split(/\s+/).filter((w: string) => w.length > 1 && !stopWords.has(w.toLowerCase()));
+    const textSearchTerms = queryWords.length > 0 ? queryWords : [query];
+
+    // Build OR conditions for text search across all searchable fields
+    const textOrConditions = textSearchTerms
+      .flatMap((term: string) => [
+        `first_name.ilike.%${term}%`,
+        `last_name.ilike.%${term}%`,
+        `email.ilike.%${term}%`,
+        `company.ilike.%${term}%`,
+        `job_title.ilike.%${term}%`,
+        `topics.ilike.%${term}%`,
+        `ooth_notes.ilike.%${term}%`,
+        `original_notes.ilike.%${term}%`,
+      ])
+      .join(',');
+
+    // Run vector search and text search in parallel
+    const [vectorResult, textResult, allowedResult] = await Promise.all([
+      supabaseAdmin.rpc('match_contacts', {
         query_embedding: queryEmbedding,
         match_count: 200,
-      }
-    );
+      }),
+      supabaseAdmin
+        .from('contacts')
+        .select(
+          'id, first_name, last_name, email, phone, company, job_title, original_notes, source, where_met, when_met, how_met, topics, relationship_strength, ooth_notes, user_id'
+        )
+        .in('user_id', searchUserIds)
+        .or(textOrConditions)
+        .limit(30),
+      supabaseAdmin
+        .from('contacts')
+        .select('id, user_id')
+        .in('user_id', searchUserIds),
+    ]);
 
-    if (matchError) {
-      console.error('Match error:', matchError);
+    if (vectorResult.error) {
+      console.error('Match error:', vectorResult.error);
       return NextResponse.json(
         { error: 'Search failed' },
         { status: 500 }
@@ -136,19 +166,31 @@ export async function POST(request: NextRequest) {
 
     // Build a set of allowed contact IDs and a map from contact ID to user_id
     const contactOwnerMap = new Map<string, string>();
-    const { data: allowedContacts } = await supabaseAdmin
-      .from('contacts')
-      .select('id, user_id')
-      .in('user_id', searchUserIds);
-    if (allowedContacts) {
-      for (const c of allowedContacts) {
+    if (allowedResult.data) {
+      for (const c of allowedResult.data) {
         contactOwnerMap.set(c.id, c.user_id);
       }
     }
 
-    const matches = (allMatches || []).filter(
+    // Filter vector results to allowed contacts
+    const vectorMatches = (vectorResult.data || []).filter(
       (m: MatchContact) => contactOwnerMap.has(m.id)
-    ).slice(0, 30);
+    );
+
+    // Merge: start with vector matches, then add text-only matches not already present
+    const seenIds = new Set<string>(vectorMatches.map((m: MatchContact) => m.id));
+    const textOnlyMatches: MatchContact[] = [];
+    for (const c of (textResult.data || [])) {
+      if (!seenIds.has(c.id)) {
+        seenIds.add(c.id);
+        textOnlyMatches.push({
+          ...c,
+          similarity: 0.5, // baseline similarity for text matches
+        } as MatchContact);
+      }
+    }
+
+    const matches = [...vectorMatches, ...textOnlyMatches].slice(0, 30);
 
     if (!matches || matches.length === 0) {
       return NextResponse.json({ results: [], mode: 'ai' });
