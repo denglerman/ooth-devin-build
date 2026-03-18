@@ -6,7 +6,6 @@ import Link from 'next/link';
 import ContactCard from '@/components/ContactCard';
 import SearchBar from '@/components/SearchBar';
 import ImportModal from '@/components/ImportModal';
-import EmbeddingProgress from '@/components/EmbeddingProgress';
 
 type Contact = {
   id: string;
@@ -43,6 +42,7 @@ export default function Home() {
   const [showDeleteAll, setShowDeleteAll] = useState(false);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
   const [networkFilter, setNetworkFilter] = useState<NetworkFilter>('mine');
+  const [searchWarning, setSearchWarning] = useState<string | null>(null);
 
   const fetchContacts = useCallback(async (pageNum: number = 1, append: boolean = false, filter?: NetworkFilter) => {
     try {
@@ -95,6 +95,7 @@ export default function Home() {
       setContacts(data.results || []);
       setTotal(data.results?.length || 0);
       setHasMore(false);
+      setSearchWarning(data.warning || null);
     } catch {
       showToast('Search failed', 'error');
     } finally {
@@ -104,6 +105,7 @@ export default function Home() {
 
   const handleClearSearch = () => {
     setSearchMode(false);
+    setSearchWarning(null);
     setPage(1);
     fetchContacts(1);
   };
@@ -225,6 +227,12 @@ export default function Home() {
           </div>
         )}
 
+        {searchWarning && (
+          <div className="mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700">
+            {searchWarning}
+          </div>
+        )}
+
         <div className="mb-6 flex items-center justify-between">
           <p className="text-sm text-gray-400">
             {searchMode ? (
@@ -301,7 +309,6 @@ export default function Home() {
       </main>
 
       <ImportModal isOpen={isImportOpen} onClose={() => setIsImportOpen(false)} onImportComplete={handleImportComplete} />
-      <EmbeddingProgress />
 
       {showDeleteAll && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
