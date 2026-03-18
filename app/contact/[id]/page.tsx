@@ -150,7 +150,7 @@ export default function ContactDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-[#0f0f1a] flex items-center justify-center">
         <svg className="animate-spin h-8 w-8 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
@@ -166,15 +166,15 @@ export default function ContactDetailPage() {
   const isReadOnly = contact.read_only === true;
 
   return (
-    <div className="min-h-screen bg-white">
-      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-gray-100">
+    <div className="min-h-screen bg-white dark:bg-[#0f0f1a]">
+      <header className="sticky top-0 z-30 bg-white/80 dark:bg-[#0f0f1a]/80 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center gap-4">
-          <button onClick={() => router.push('/')} className="p-2 rounded-xl hover:bg-gray-100 text-gray-400 hover:text-navy transition-colors">
+          <button onClick={() => router.push('/')} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-navy dark:hover:text-white transition-colors">
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="text-2xl font-bold text-navy tracking-tight">ooth</h1>
+          <h1 className="text-2xl font-bold text-navy dark:text-white tracking-tight">ooth</h1>
         </div>
       </header>
 
@@ -183,7 +183,7 @@ export default function ContactDetailPage() {
         {contact.degree === 2 && contact.via_friend && (
           <div className="mb-6 px-4 py-3 bg-accent/5 border border-accent/20 rounded-xl flex items-center gap-2">
             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-accent/10 text-accent">2nd</span>
-            <p className="text-sm text-gray-600">Shared by <span className="font-medium text-navy">{contact.via_friend}</span></p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Shared by <span className="font-medium text-navy dark:text-white">{contact.via_friend}</span></p>
           </div>
         )}
 
@@ -193,7 +193,7 @@ export default function ContactDetailPage() {
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 flex-wrap">
-              <h2 className="text-3xl font-bold text-navy">{fullName}</h2>
+              <h2 className="text-3xl font-bold text-navy dark:text-white">{fullName}</h2>
               {contact.degree && (
                 <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                   contact.degree === 1
@@ -204,100 +204,100 @@ export default function ContactDetailPage() {
                 </span>
               )}
               {contact.source && (
-                <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-500 font-medium">{contact.source}</span>
+                <span className="text-xs px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 font-medium">{contact.source}</span>
               )}
             </div>
-            {jobTitle && <p className="text-gray-500 text-lg mt-1">{jobTitle}</p>}
-            {company && <p className="text-gray-400 text-base">{company}</p>}
+            {jobTitle && <p className="text-gray-500 dark:text-gray-400 text-lg mt-1">{jobTitle}</p>}
+            {company && <p className="text-gray-400 dark:text-gray-500 text-base">{company}</p>}
           </div>
         </div>
 
-        <div className="bg-card rounded-2xl p-6 mb-6">
-          <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Contact Info</h3>
+        <div className="bg-card dark:bg-gray-800/50 rounded-2xl p-6 mb-6">
+          <h3 className="text-sm font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4">Contact Info</h3>
           {isReadOnly ? (
             <div className="space-y-3">
               {(firstName || lastName) && (
                 <div>
-                  <label className="block text-xs font-medium text-gray-400 mb-1">Name</label>
-                  <p className="text-sm text-navy">{fullName}</p>
+                  <label className="block text-xs font-medium text-gray-400 dark:text-gray-500 mb-1">Name</label>
+                  <p className="text-sm text-navy dark:text-white">{fullName}</p>
                 </div>
               )}
               {email && (
                 <div>
-                  <label className="block text-xs font-medium text-gray-400 mb-1">Email</label>
-                  <a href={`mailto:${email}`} className="text-sm text-navy hover:text-accent transition-colors">{email}</a>
+                  <label className="block text-xs font-medium text-gray-400 dark:text-gray-500 mb-1">Email</label>
+                  <a href={`mailto:${email}`} className="text-sm text-navy dark:text-white hover:text-accent transition-colors">{email}</a>
                 </div>
               )}
               {phone && (
                 <div>
-                  <label className="block text-xs font-medium text-gray-400 mb-1">Phone</label>
-                  <a href={`tel:${phone}`} className="text-sm text-navy hover:text-accent transition-colors">{phone}</a>
+                  <label className="block text-xs font-medium text-gray-400 dark:text-gray-500 mb-1">Phone</label>
+                  <a href={`tel:${phone}`} className="text-sm text-navy dark:text-white hover:text-accent transition-colors">{phone}</a>
                 </div>
               )}
               {company && (
                 <div>
-                  <label className="block text-xs font-medium text-gray-400 mb-1">Company</label>
-                  <p className="text-sm text-navy">{company}</p>
+                  <label className="block text-xs font-medium text-gray-400 dark:text-gray-500 mb-1">Company</label>
+                  <p className="text-sm text-navy dark:text-white">{company}</p>
                 </div>
               )}
               {jobTitle && (
                 <div>
-                  <label className="block text-xs font-medium text-gray-400 mb-1">Job Title</label>
-                  <p className="text-sm text-navy">{jobTitle}</p>
+                  <label className="block text-xs font-medium text-gray-400 dark:text-gray-500 mb-1">Job Title</label>
+                  <p className="text-sm text-navy dark:text-white">{jobTitle}</p>
                 </div>
               )}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-navy mb-1.5">First Name</label>
-                <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="First name" className="w-full px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
+                  <label className="block text-sm font-medium text-navy dark:text-gray-300 mb-1.5">First Name</label>
+                  <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="First name" className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 text-navy dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-navy mb-1.5">Last Name</label>
-                <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Last name" className="w-full px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
+                  <label className="block text-sm font-medium text-navy dark:text-gray-300 mb-1.5">Last Name</label>
+                  <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Last name" className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 text-navy dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-navy mb-1.5">Email</label>
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@example.com" className="w-full px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
+                  <label className="block text-sm font-medium text-navy dark:text-gray-300 mb-1.5">Email</label>
+                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@example.com" className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 text-navy dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-navy mb-1.5">Phone</label>
-                <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 (555) 000-0000" className="w-full px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
+                  <label className="block text-sm font-medium text-navy dark:text-gray-300 mb-1.5">Phone</label>
+                  <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 (555) 000-0000" className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 text-navy dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-navy mb-1.5">Company</label>
-                <input type="text" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company name" className="w-full px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
+                  <label className="block text-sm font-medium text-navy dark:text-gray-300 mb-1.5">Company</label>
+                  <input type="text" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company name" className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 text-navy dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-navy mb-1.5">Job Title</label>
-                <input type="text" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} placeholder="Job title" className="w-full px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
+                  <label className="block text-sm font-medium text-navy dark:text-gray-300 mb-1.5">Job Title</label>
+                  <input type="text" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} placeholder="Job title" className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 text-navy dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
               </div>
             </div>
           )}
           {contact.original_notes && (
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <label className="block text-sm font-medium text-navy mb-1.5">Original Notes</label>
-              <p className="text-sm text-gray-500">{contact.original_notes}</p>
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <label className="block text-sm font-medium text-navy dark:text-gray-300 mb-1.5">Original Notes</label>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{contact.original_notes}</p>
             </div>
           )}
         </div>
 
         {!isReadOnly && (
-        <div className="bg-card rounded-2xl p-6">
-          <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-6">Ooth Context</h3>
+        <div className="bg-card dark:bg-gray-800/50 rounded-2xl p-6">
+          <h3 className="text-sm font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-6">Ooth Context</h3>
           <div className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-navy mb-1.5">Where we met</label>
-              <input type="text" value={whereMet} onChange={(e) => setWhereMet(e.target.value)} placeholder="e.g. TechCrunch Disrupt 2024" className="w-full px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
+              <label className="block text-sm font-medium text-navy dark:text-gray-300 mb-1.5">Where we met</label>
+              <input type="text" value={whereMet} onChange={(e) => setWhereMet(e.target.value)} placeholder="e.g. TechCrunch Disrupt 2024" className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 text-navy dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-navy mb-1.5">When we met</label>
-              <input type="date" value={whenMet} onChange={(e) => setWhenMet(e.target.value)} className="w-full px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
+              <label className="block text-sm font-medium text-navy dark:text-gray-300 mb-1.5">When we met</label>
+              <input type="date" value={whenMet} onChange={(e) => setWhenMet(e.target.value)} className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 text-navy dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-navy mb-1.5">How we met</label>
-              <select value={howMet} onChange={(e) => setHowMet(e.target.value)} className="w-full px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-navy focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm">
+              <label className="block text-sm font-medium text-navy dark:text-gray-300 mb-1.5">How we met</label>
+              <select value={howMet} onChange={(e) => setHowMet(e.target.value)} className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 text-navy dark:text-white focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm">
                 <option value="">Select...</option>
                 <option value="In Person">In Person</option>
                 <option value="Introduction">Introduction</option>
@@ -307,12 +307,12 @@ export default function ContactDetailPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-navy mb-1.5">Topics discussed</label>
-              <input type="text" value={topics} onChange={(e) => setTopics(e.target.value)} placeholder="e.g. AI, climate tech, series A fundraising" className="w-full px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
+              <label className="block text-sm font-medium text-navy dark:text-gray-300 mb-1.5">Topics discussed</label>
+              <input type="text" value={topics} onChange={(e) => setTopics(e.target.value)} placeholder="e.g. AI, climate tech, series A fundraising" className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 text-navy dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-navy mb-1.5">Relationship strength</label>
-              <select value={relationshipStrength} onChange={(e) => setRelationshipStrength(e.target.value)} className="w-full px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-navy focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm">
+              <label className="block text-sm font-medium text-navy dark:text-gray-300 mb-1.5">Relationship strength</label>
+              <select value={relationshipStrength} onChange={(e) => setRelationshipStrength(e.target.value)} className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 text-navy dark:text-white focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm">
                 <option value="">Select...</option>
                 <option value="Weak">Weak</option>
                 <option value="Familiar">Familiar</option>
@@ -320,14 +320,14 @@ export default function ContactDetailPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-navy mb-1.5">Personal notes</label>
-              <textarea value={oothNotes} onChange={(e) => setOothNotes(e.target.value)} placeholder="Your private notes about this person..." rows={4} className="w-full px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm resize-none" />
+              <label className="block text-sm font-medium text-navy dark:text-gray-300 mb-1.5">Personal notes</label>
+              <textarea value={oothNotes} onChange={(e) => setOothNotes(e.target.value)} placeholder="Your private notes about this person..." rows={4} className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 text-navy dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 text-sm resize-none" />
             </div>
             <div className="pt-2 flex items-center gap-3">
               <button onClick={handleSave} disabled={isSaving} className="px-6 py-2.5 bg-accent text-white rounded-xl text-sm font-medium hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                 {isSaving ? 'Saving...' : 'Save Changes'}
               </button>
-              <button onClick={() => setShowDeleteConfirm(true)} className="px-6 py-2.5 bg-white text-red-500 border border-red-200 rounded-xl text-sm font-medium hover:bg-red-50 transition-colors">
+              <button onClick={() => setShowDeleteConfirm(true)} className="px-6 py-2.5 bg-white dark:bg-gray-900 text-red-500 border border-red-200 dark:border-red-800 rounded-xl text-sm font-medium hover:bg-red-50 dark:hover:bg-red-950 transition-colors">
                 Delete Contact
               </button>
             </div>
@@ -339,13 +339,13 @@ export default function ContactDetailPage() {
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDeleteConfirm(false)} />
-          <div className="relative bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
-            <h3 className="text-lg font-bold text-navy mb-2">Delete Contact</h3>
-            <p className="text-gray-500 text-sm mb-6">
+          <div className="relative bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
+            <h3 className="text-lg font-bold text-navy dark:text-white mb-2">Delete Contact</h3>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
               Are you sure you want to delete {fullName}? This action cannot be undone.
             </p>
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setShowDeleteConfirm(false)} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
+              <button onClick={() => setShowDeleteConfirm(false)} className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors">
                 Cancel
               </button>
               <button onClick={handleDelete} disabled={isDeleting} className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-xl disabled:opacity-50 transition-colors">

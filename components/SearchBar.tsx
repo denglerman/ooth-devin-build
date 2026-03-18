@@ -102,14 +102,14 @@ export default function SearchBar({
           value={query}
           onChange={handleChange}
           placeholder={placeholder}
-          className="w-full pl-12 pr-24 py-4 bg-card rounded-2xl border-0 text-navy placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 shadow-card text-base"
+          className="w-full pl-12 pr-24 py-4 bg-card dark:bg-gray-800 rounded-2xl border-0 text-navy dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent/20 shadow-card text-base"
         />
         <div className="absolute inset-y-0 right-3 flex items-center gap-2">
           {query && (
             <button
               type="button"
               onClick={handleClear}
-              className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
