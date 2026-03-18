@@ -126,14 +126,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Send entire compressed list to Claude
-    const claudePrompt = `You are a personal network search assistant. The user is searching for: '${query}'.
+    const claudePrompt = `You are a strict personal network search assistant. The user is searching their contacts for: '${query}'.
 
 Here is their ${truncated ? 'partial' : 'complete'} contact list in compressed format (id|name|company|title|where_met|topics|notes):
 ${compressedList}
 
-Return a JSON array of the IDs of contacts that are relevant to this search query, ranked by relevance, with a 1-2 sentence explanation for each.
-Format: [{"id": "uuid", "reasoning": "explanation"}]
-Only include genuinely relevant contacts. Return JSON only.`;
+IMPORTANT RULES:
+- ONLY return contacts whose actual data fields (name, company, title, where_met, topics, notes) directly match the search query.
+- For company searches (e.g. "people at X"), only return contacts whose company field contains that company name or a known alias (e.g. "a16z" = "Andreessen Horowitz").
+- Do NOT infer, guess, or speculate about connections. If the data doesn't explicitly mention it, don't include the contact.
+- Do NOT include contacts who merely work in the same industry, at similar companies, or who might theoretically know someone at the target company.
+- When in doubt, leave the contact OUT. Precision matters more than recall.
+- If no contacts match, return an empty array [].
+
+Return a JSON array of matching contact IDs ranked by relevance.
+Format: [{"id": "uuid", "reasoning": "explanation citing the specific field that matched"}]
+Return JSON only, no other text.`;
 
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
