@@ -43,14 +43,15 @@ function compressContact(c: {
   topics: string | null;
   ooth_notes: string | null;
 }): string {
+  const sanitize = (s: string | null) => (s ?? '').replace(/[\n\r|]/g, ' ');
   const parts = [
     c.id,
     [c.first_name, c.last_name].filter(Boolean).join(' ') || '',
-    c.company ?? '',
-    c.job_title ?? '',
-    c.where_met ?? '',
-    c.topics ?? '',
-    c.ooth_notes ?? '',
+    sanitize(c.company),
+    sanitize(c.job_title),
+    sanitize(c.where_met),
+    sanitize(c.topics),
+    sanitize(c.ooth_notes),
   ];
   return parts.join(' | ');
 }
