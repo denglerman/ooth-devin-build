@@ -12,20 +12,60 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data, error } = await supabaseAdmin
+    // First try to find as user's own contact (1st degree)
+    const { data: ownContact } = await supabaseAdmin
       .from('contacts')
       .select(
-        'id, first_name, last_name, email, phone, company, job_title, original_notes, source, where_met, when_met, how_met, topics, relationship_strength, ooth_notes, created_at'
+        'id, first_name, last_name, email, phone, company, job_title, original_notes, source, where_met, when_met, how_met, topics, relationship_strength, ooth_notes, created_at, user_id'
       )
       .eq('id', params.id)
       .eq('user_id', user.id)
       .single();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 404 });
+    if (ownContact) {
+      return NextResponse.json({ ...ownContact, degree: 1, via_friend: null, via_friend_username: null, read_only: false });
     }
 
-    return NextResponse.json(data);
+    // Check if it belongs to a friend (2nd degree)
+    const { data: friendships } = await supabaseAdmin
+      .from('friendships')
+      .select('friend_id')
+      .eq('user_id', user.id)
+      .eq('status', 'active');
+
+    const friendIds = (friendships || []).map((f) => f.friend_id);
+
+    if (friendIds.length === 0) {
+      return NextResponse.json({ error: 'Contact not found' }, { status: 404 });
+    }
+
+    const { data: friendContact } = await supabaseAdmin
+      .from('contacts')
+      .select(
+        'id, first_name, last_name, email, phone, company, job_title, original_notes, source, where_met, when_met, how_met, topics, relationship_strength, ooth_notes, created_at, user_id'
+      )
+      .eq('id', params.id)
+      .in('user_id', friendIds)
+      .single();
+
+    if (!friendContact) {
+      return NextResponse.json({ error: 'Contact not found' }, { status: 404 });
+    }
+
+    // Get the friend's profile info
+    const { data: friendProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('username, full_name')
+      .eq('id', friendContact.user_id)
+      .single();
+
+    return NextResponse.json({
+      ...friendContact,
+      degree: 2,
+      via_friend: friendProfile?.full_name || friendProfile?.username || null,
+      via_friend_username: friendProfile?.username || null,
+      read_only: true,
+    });
   } catch (error) {
     console.error('Contact fetch error:', error);
     return NextResponse.json(
