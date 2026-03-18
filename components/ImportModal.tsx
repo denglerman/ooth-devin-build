@@ -88,18 +88,18 @@ export default function ImportModal({ isOpen, onClose, onImportComplete }: Impor
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-3xl p-8 max-w-lg w-full mx-4 shadow-xl">
+      <div className="relative bg-white dark:bg-gray-900 rounded-3xl p-8 max-w-lg w-full mx-4 shadow-xl">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-xl hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+          className="absolute top-4 right-4 p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
         >
           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
-        <h2 className="text-2xl font-bold text-navy mb-2">Import Contacts</h2>
-        <p className="text-gray-500 text-sm mb-6">
+        <h2 className="text-2xl font-bold text-navy dark:text-white mb-2">Import Contacts</h2>
+        <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
           Upload a CSV from Google Contacts or LinkedIn. We&apos;ll auto-detect the format.
         </p>
 
@@ -111,7 +111,7 @@ export default function ImportModal({ isOpen, onClose, onImportComplete }: Impor
           className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all ${
             isDragging
               ? 'border-accent bg-accent/5'
-              : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800'
           }`}
         >
           <input
@@ -144,7 +144,7 @@ export default function ImportModal({ isOpen, onClose, onImportComplete }: Impor
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 />
               </svg>
-              <p className="text-navy font-medium">Importing contacts...</p>
+              <p className="text-navy dark:text-white font-medium">Importing contacts...</p>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-3">
@@ -162,18 +162,18 @@ export default function ImportModal({ isOpen, onClose, onImportComplete }: Impor
                 />
               </svg>
               <div>
-                <p className="text-navy font-medium">Drop your CSV here</p>
-                <p className="text-gray-400 text-sm mt-1">or click to browse</p>
+                <p className="text-navy dark:text-white font-medium">Drop your CSV here</p>
+                <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">or click to browse</p>
               </div>
             </div>
           )}
         </div>
 
         {error && (
-          <div className="mt-4 p-3 bg-red-50 rounded-xl text-red-600 text-sm">{error}</div>
+          <div className="mt-4 p-3 bg-red-50 dark:bg-red-950 rounded-xl text-red-600 dark:text-red-400 text-sm">{error}</div>
         )}
 
-        <p className="mt-4 text-xs text-gray-400 text-center">
+        <p className="mt-4 text-xs text-gray-400 dark:text-gray-500 text-center">
           Supports Google Contacts and LinkedIn CSV exports
         </p>
       </div>
