@@ -45,13 +45,13 @@ function compressContact(c: {
 }): string {
   const parts = [
     c.id,
-    [c.first_name, c.last_name].filter(Boolean).join(' '),
-    c.company,
-    c.job_title,
-    c.where_met,
-    c.topics,
-    c.ooth_notes,
-  ].filter(Boolean);
+    [c.first_name, c.last_name].filter(Boolean).join(' ') || '',
+    c.company ?? '',
+    c.job_title ?? '',
+    c.where_met ?? '',
+    c.topics ?? '',
+    c.ooth_notes ?? '',
+  ];
   return parts.join(' | ');
 }
 
@@ -165,7 +165,8 @@ Return JSON only.`;
     const { data: fullContacts } = await supabaseAdmin
       .from('contacts')
       .select('id, first_name, last_name, email, phone, company, job_title, original_notes, source, where_met, when_met, how_met, topics, relationship_strength, ooth_notes, user_id')
-      .in('id', matchedIds);
+      .in('id', matchedIds)
+      .in('user_id', searchUserIds);
 
     const contactMap = new Map((fullContacts || []).map((c) => [c.id, c]));
 
@@ -273,7 +274,8 @@ async function embeddingFallbackSearch(
   const { data: allowedContacts } = await supabaseAdmin
     .from('contacts')
     .select('id, user_id')
-    .in('user_id', searchUserIds);
+    .in('user_id', searchUserIds)
+    .limit(50000);
   if (allowedContacts) {
     for (const c of allowedContacts) {
       contactOwnerMap.set(c.id, c.user_id);
