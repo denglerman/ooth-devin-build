@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
     // Send entire compressed list to Claude
     const claudePrompt = `You are a personal network search assistant. The user is searching for: '${query}'.
 
-Here is their complete contact list in compressed format (id|name|company|title|where_met|topics|notes):
+Here is their ${truncated ? 'partial' : 'complete'} contact list in compressed format (id|name|company|title|where_met|topics|notes):
 ${compressedList}
 
 Return a JSON array of the IDs of contacts that are relevant to this search query, ranked by relevance, with a 1-2 sentence explanation for each.
