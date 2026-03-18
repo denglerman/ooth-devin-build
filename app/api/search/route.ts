@@ -91,10 +91,12 @@ export async function POST(request: NextRequest) {
     const searchUserIds = includeNetwork ? [user.id, ...friendIds] : [user.id];
 
     // Load compressed contact index for all searchable users
+    // Supabase PostgREST defaults to 1000 rows — set explicit high limit to avoid silent truncation
     const { data: allContacts, error: contactsError } = await supabaseAdmin
       .from('contacts')
       .select('id, user_id, first_name, last_name, company, job_title, where_met, topics, ooth_notes')
-      .in('user_id', searchUserIds);
+      .in('user_id', searchUserIds)
+      .limit(50000);
 
     if (contactsError) {
       console.error('Failed to load contacts:', contactsError);
