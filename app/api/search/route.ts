@@ -126,22 +126,26 @@ export async function POST(request: NextRequest) {
     }
 
     // Send entire compressed list to Claude
-    const claudePrompt = `You are a strict personal network search assistant. The user is searching their contacts for: '${query}'.
+    const claudePrompt = `You are a personal network search assistant.
+The user is searching for: '${query}'
 
 Here is their ${truncated ? 'partial' : 'complete'} contact list in compressed format (id|name|company|title|where_met|topics|notes):
 ${compressedList}
 
-IMPORTANT RULES:
-- ONLY return contacts whose actual data fields (name, company, title, where_met, topics, notes) directly match the search query.
-- For company searches (e.g. "people at X"), only return contacts whose company field contains that company name or a known alias (e.g. "a16z" = "Andreessen Horowitz").
-- Do NOT infer, guess, or speculate about connections. If the data doesn't explicitly mention it, don't include the contact.
-- Do NOT include contacts who merely work in the same industry, at similar companies, or who might theoretically know someone at the target company.
-- When in doubt, leave the contact OUT. Precision matters more than recall.
-- If no contacts match, return an empty array [].
+RULES:
+- Only return contacts where the data EXPLICITLY supports the match
+- Base matches on the actual data fields: name, company, job title, where met, topics, notes
+- Common abbreviations and alternate names for companies are valid matches (e.g. a16z = Andreessen Horowitz, Google = Alphabet, Meta = Facebook). Use your general knowledge of well-known company aliases to recognize these — but only match on company identity, not industry proximity
+- Do NOT return someone because they work in a similar industry or might know someone at the searched company
+- Do NOT infer or hallucinate connections that aren't in the data
+- For company searches: only match contacts whose company field is that company or a known alias of it
+- For role searches: only match contacts whose job title explicitly matches
+- For location searches: only match contacts whose where_met field mentions that location
+- For topic searches: match contacts whose topics or notes mention that subject
+- If no contacts genuinely match, return []
 
-Return a JSON array of matching contact IDs ranked by relevance.
-Format: [{"id": "uuid", "reasoning": "explanation citing the specific field that matched"}]
-Return JSON only, no other text.`;
+Return format: [{"id": "uuid", "reasoning": "explanation citing the specific data field that matched"}]
+Return JSON only. No other text.`;
 
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
