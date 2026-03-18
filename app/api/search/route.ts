@@ -114,20 +114,58 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Generate embedding for query
+    // Hybrid search: run vector search AND text search in parallel, then merge
     const queryEmbedding = await generateEmbedding(query);
 
-    // Call Supabase match_contacts function then filter by allowed user IDs
-    const { data: allMatches, error: matchError } = await supabaseAdmin.rpc(
-      'match_contacts',
-      {
+    // Extract meaningful search terms for text matching (sanitize PostgREST special chars)
+    const stopWords = new Set(['people', 'person', 'who', 'that', 'work', 'works', 'worked', 'working', 'at', 'in', 'the', 'a', 'an', 'is', 'are', 'was', 'were', 'for', 'with', 'from', 'and', 'or', 'of', 'to', 'do', 'does', 'did', 'have', 'has', 'had', 'my', 'their', 'our', 'know', 'knows', 'knew', 'met', 'meet', 'find', 'search', 'look', 'looking']);
+    const sanitize = (w: string) => w.replace(/[.,%()\\]/g, '');
+    const queryWords = query.split(/\s+/)
+      .filter((w: string) => w.length > 1 && !stopWords.has(w.toLowerCase()))
+      .map((w: string) => sanitize(w))
+      .filter((w: string) => w.length > 0);
+    const textSearchTerms = queryWords.length > 0 ? queryWords : [sanitize(query)].filter((w) => w.length > 0);
+
+    // Build OR conditions for text search across all searchable fields
+    const textOrConditions = textSearchTerms.length > 0
+      ? textSearchTerms
+          .flatMap((term: string) => [
+            `first_name.ilike.%${term}%`,
+            `last_name.ilike.%${term}%`,
+            `email.ilike.%${term}%`,
+            `company.ilike.%${term}%`,
+            `job_title.ilike.%${term}%`,
+            `topics.ilike.%${term}%`,
+            `ooth_notes.ilike.%${term}%`,
+            `original_notes.ilike.%${term}%`,
+          ])
+          .join(',')
+      : null;
+
+    // Run vector search, text search, and allowed contacts query in parallel
+    const [vectorResult, textResult, allowedResult] = await Promise.all([
+      supabaseAdmin.rpc('match_contacts', {
         query_embedding: queryEmbedding,
         match_count: 200,
-      }
-    );
+      }),
+      textOrConditions
+        ? supabaseAdmin
+            .from('contacts')
+            .select(
+              'id, first_name, last_name, email, phone, company, job_title, original_notes, source, where_met, when_met, how_met, topics, relationship_strength, ooth_notes, user_id'
+            )
+            .in('user_id', searchUserIds)
+            .or(textOrConditions)
+            .limit(30)
+        : Promise.resolve({ data: [] as Array<{ id: string; user_id: string; first_name: string | null; last_name: string | null; email: string | null; phone: string | null; company: string | null; job_title: string | null; original_notes: string | null; source: string | null; where_met: string | null; when_met: string | null; how_met: string | null; topics: string | null; relationship_strength: string | null; ooth_notes: string | null }> }),
+      supabaseAdmin
+        .from('contacts')
+        .select('id, user_id')
+        .in('user_id', searchUserIds),
+    ]);
 
-    if (matchError) {
-      console.error('Match error:', matchError);
+    if (vectorResult.error) {
+      console.error('Match error:', vectorResult.error);
       return NextResponse.json(
         { error: 'Search failed' },
         { status: 500 }
@@ -136,19 +174,32 @@ export async function POST(request: NextRequest) {
 
     // Build a set of allowed contact IDs and a map from contact ID to user_id
     const contactOwnerMap = new Map<string, string>();
-    const { data: allowedContacts } = await supabaseAdmin
-      .from('contacts')
-      .select('id, user_id')
-      .in('user_id', searchUserIds);
-    if (allowedContacts) {
-      for (const c of allowedContacts) {
+    if (allowedResult.data) {
+      for (const c of allowedResult.data) {
         contactOwnerMap.set(c.id, c.user_id);
       }
     }
 
-    const matches = (allMatches || []).filter(
+    // Filter vector results to allowed contacts, pre-slice to reserve slots for text matches
+    const vectorMatches = (vectorResult.data || []).filter(
       (m: MatchContact) => contactOwnerMap.has(m.id)
-    ).slice(0, 30);
+    ).slice(0, 20); // reserve ~10 slots for text-only matches
+
+    // Merge: start with vector matches, then add text-only matches not already present
+    const seenIds = new Set<string>(vectorMatches.map((m: MatchContact) => m.id));
+    const textOnlyMatches: MatchContact[] = [];
+    const textData = 'data' in textResult ? textResult.data : textResult;
+    for (const c of (textData || [])) {
+      if (!seenIds.has(c.id)) {
+        seenIds.add(c.id);
+        textOnlyMatches.push({
+          ...c,
+          similarity: 0.5, // baseline similarity for text matches
+        } as MatchContact);
+      }
+    }
+
+    const matches = [...vectorMatches, ...textOnlyMatches].slice(0, 30);
 
     if (!matches || matches.length === 0) {
       return NextResponse.json({ results: [], mode: 'ai' });
@@ -204,13 +255,21 @@ Return JSON only, no other text.`;
       rankedResults = JSON.parse(cleanedText);
     } catch {
       console.error('Failed to parse Claude response:', responseText);
-      // Fallback: return matches with generic reasoning
+      // Fallback: return matches with generic reasoning + degree info
       return NextResponse.json({
         results: (matches as MatchContact[]).slice(0, 10).map(
-          (c) => ({
-            ...c,
-            reasoning: 'Semantically similar to your search query',
-          })
+          (c) => {
+            const ownerId = contactOwnerMap.get(c.id);
+            const isOwn = ownerId === user.id;
+            const friendProfile = !isOwn && ownerId ? friendProfileMap.get(ownerId) : null;
+            return {
+              ...c,
+              reasoning: 'Semantically similar to your search query',
+              degree: isOwn ? 1 : 2,
+              via_friend: friendProfile?.full_name || friendProfile?.username || null,
+              via_friend_username: friendProfile?.username || null,
+            };
+          }
         ),
         mode: 'ai',
       });

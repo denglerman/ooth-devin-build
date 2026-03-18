@@ -149,31 +149,13 @@ export async function GET(request: NextRequest) {
     }
 
     // filter === 'all': combine user's contacts + friends' contacts
-    // Fetch user's own contacts count
-    const { count: myCount } = await supabaseAdmin
-      .from('contacts')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id);
-
-    // Fetch friends' contacts count
-    let friendCount = 0;
-    if (friendIds.length > 0) {
-      const { count: fc } = await supabaseAdmin
-        .from('contacts')
-        .select('*', { count: 'exact', head: true })
-        .in('user_id', friendIds);
-      friendCount = fc || 0;
-    }
-
-    const totalCount = (myCount || 0) + friendCount;
-
-    // Fetch combined contacts with pagination
-    // We need to query both sets and combine them
     const allUserIds = [user.id, ...friendIds];
 
     let query = supabaseAdmin
       .from('contacts')
-      .select('id, first_name, last_name, email, phone, company, job_title, source, created_at, user_id')
+      .select('id, first_name, last_name, email, phone, company, job_title, source, created_at, user_id', {
+        count: 'exact',
+      })
       .in('user_id', allUserIds);
 
     if (search) {
@@ -182,7 +164,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { data, error } = await query
+    const { data, error, count } = await query
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -203,7 +185,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       contacts,
-      total: totalCount,
+      total: count || 0,
       page,
       limit,
     });
