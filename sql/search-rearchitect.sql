@@ -25,7 +25,7 @@ CREATE INDEX IF NOT EXISTS contacts_search_vector_idx ON contacts USING gin(sear
 
 -- 4. Create trigram indexes for fuzzy matching
 CREATE INDEX IF NOT EXISTS contacts_company_trgm ON contacts USING gin(company gin_trgm_ops);
-CREATE INDEX IF NOT EXISTS contacts_name_trgm ON contacts USING gin((first_name || ' ' || last_name) gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS contacts_name_trgm ON contacts USING gin((coalesce(first_name, '') || ' ' || coalesce(last_name, '')) gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS contacts_title_trgm ON contacts USING gin(job_title gin_trgm_ops);
 
 -- 5. Vector index on embedding column

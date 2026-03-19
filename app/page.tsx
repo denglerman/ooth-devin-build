@@ -44,7 +44,6 @@ export default function Home() {
   const [isDeletingAll, setIsDeletingAll] = useState(false);
   const [networkFilter, setNetworkFilter] = useState<NetworkFilter>('mine');
   const [searchWarning, setSearchWarning] = useState<string | null>(null);
-  const [contactLimitWarning, setContactLimitWarning] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const networkFilterRef = useRef<NetworkFilter>(networkFilter);
@@ -64,18 +63,6 @@ export default function Home() {
       }
       setTotal(data.total);
       setHasMore(pageNum * 50 < data.total);
-
-      // Check if contact count exceeds search limit (~180k tokens at ~4 chars/token)
-      // Rough estimate: average ~80 chars per compressed contact line
-      const estimatedTokens = (data.total * 80) / 4;
-      if (estimatedTokens > 180000) {
-        const maxContacts = Math.floor((180000 * 4) / 80);
-        setContactLimitWarning(
-          `Your network has ${data.total.toLocaleString()} contacts which exceeds the search limit. Search may only see a portion of your contacts. For best results, keep your total contacts under ${maxContacts.toLocaleString()}. You can delete contacts to improve search accuracy.`
-        );
-      } else {
-        setContactLimitWarning(null);
-      }
     } catch {
       showToast('Failed to load contacts', 'error');
     } finally {
@@ -311,12 +298,6 @@ export default function Home() {
             isSearching={isSearching}
           />
         </div>
-
-        {contactLimitWarning && !searchMode && (
-          <div className="mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700">
-            {contactLimitWarning}
-          </div>
-        )}
 
         {searchWarning && searchMode && (
           <div className="mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700">
