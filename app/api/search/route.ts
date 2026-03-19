@@ -49,7 +49,9 @@ function compressContact(c: {
   company: string | null;
   job_title: string | null;
   where_met: string | null;
+  how_met: string | null;
   topics: string | null;
+  original_notes: string | null;
   ooth_notes: string | null;
 }): string {
   const sanitize = (s: string | null) => s?.replace(/[\n\r|]/g, ' ').trim() || '';
@@ -59,7 +61,9 @@ function compressContact(c: {
     sanitize(c.company),
     sanitize(c.job_title),
     sanitize(c.where_met),
+    sanitize(c.how_met),
     sanitize(c.topics),
+    sanitize(c.original_notes),
     sanitize(c.ooth_notes),
   ];
   while (parts.length > 1 && parts[parts.length - 1] === '') {
@@ -281,7 +285,7 @@ function buildClaudePrompt(
   const userMsg = `The user searched for: '${query}'
 
 Here are pre-filtered contacts that have already passed structured and semantic search filters. Each line is:
-id|name|company|title|where_met|topics|notes
+id|name|company|title|where_met|how_met|topics|original_notes|ooth_notes
 
 ${compressedLines.join('\n')}
 
