@@ -181,8 +181,11 @@ export default function Home() {
       }
       showToast('Search failed', 'error');
     } finally {
-      setIsSearching(false);
-      abortControllerRef.current = null;
+      // Only clean up if this is still the active search
+      if (abortControllerRef.current === abortController) {
+        setIsSearching(false);
+        abortControllerRef.current = null;
+      }
     }
   };
 
