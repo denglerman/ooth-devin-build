@@ -28,20 +28,12 @@ CREATE INDEX IF NOT EXISTS contacts_company_trgm ON contacts USING gin(company g
 CREATE INDEX IF NOT EXISTS contacts_name_trgm ON contacts USING gin((first_name || ' ' || last_name) gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS contacts_title_trgm ON contacts USING gin(job_title gin_trgm_ops);
 
--- 5. Create IVFFlat index on embedding column (if enough rows exist)
--- Note: IVFFlat requires at least lists * 10 rows. Start with lists=10 for smaller datasets.
--- For millions of contacts, increase lists to 100+
-DO $$
-BEGIN
-  IF (SELECT count(*) FROM contacts WHERE embedding IS NOT NULL) >= 1000 THEN
-    DROP INDEX IF EXISTS contacts_embedding_idx;
-    CREATE INDEX contacts_embedding_idx ON contacts USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
-  ELSE
-    -- Use a simpler HNSW index that works with any number of rows
-    DROP INDEX IF EXISTS contacts_embedding_hnsw_idx;
-    CREATE INDEX contacts_embedding_hnsw_idx ON contacts USING hnsw (embedding vector_cosine_ops);
-  END IF;
-END $$;
+-- 5. Vector index on embedding column
+-- Note: HNSW and IVFFlat indexes on 1536-dimension vectors require more than 32MB
+-- maintenance_work_mem, which exceeds Supabase free tier limits. The vector search
+-- (Layer 2) will still work via sequential scan — it's fast enough for <10k contacts.
+-- For larger datasets on a paid plan, uncomment and run:
+-- CREATE INDEX contacts_embedding_hnsw_idx ON contacts USING hnsw (embedding vector_cosine_ops);
 
 -- 6. Create company_aliases table
 CREATE TABLE IF NOT EXISTS company_aliases (
