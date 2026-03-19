@@ -198,6 +198,12 @@ export default function Home() {
   };
 
   const handleClearSearch = () => {
+    // Abort any in-flight SSE search stream
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsSearching(false);
     setSearchMode(false);
     setSearchWarning(null);
     setSearchQuery('');
