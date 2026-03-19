@@ -125,6 +125,43 @@ export async function POST(request: NextRequest) {
       contactOwnerMap.set(c.id, c.user_id);
     }
 
+    // Text pre-filter: find contacts where query terms appear in their fields.
+    // This catches exact matches that Claude might miss in large lists.
+    const STOP_WORDS = new Set([
+      'the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'can', 'had', 'her', 'was',
+      'one', 'our', 'out', 'has', 'his', 'how', 'its', 'may', 'new', 'now', 'old', 'see',
+      'way', 'who', 'did', 'get', 'let', 'say', 'she', 'too', 'use', 'any', 'each',
+      'people', 'person', 'that', 'this', 'with', 'have', 'from', 'they', 'been', 'said',
+      'will', 'find', 'work', 'here', 'know', 'take', 'want', 'does', 'make', 'like',
+      'just', 'over', 'such', 'than', 'them', 'very', 'some', 'what', 'about', 'which',
+      'when', 'where', 'their', 'there', 'would', 'could', 'should', 'those', 'these',
+      'working', 'works', 'worked',
+    ]);
+    const queryTerms = query.toLowerCase().split(/\s+/).filter((t: string) => t.length > 2 && !STOP_WORDS.has(t));
+    const textMatchIds = new Set<string>();
+    const textMatchReasons = new Map<string, string>();
+    for (const contact of allContacts) {
+      const fields = [
+        { name: 'name', value: [contact.first_name, contact.last_name].filter(Boolean).join(' ') },
+        { name: 'company', value: contact.company },
+        { name: 'job title', value: contact.job_title },
+        { name: 'where met', value: contact.where_met },
+        { name: 'topics', value: contact.topics },
+        { name: 'notes', value: contact.ooth_notes },
+      ];
+      for (const field of fields) {
+        if (!field.value) continue;
+        const fieldLower = field.value.toLowerCase();
+        // Check if any query term appears in the field
+        const matchingTerms = queryTerms.filter((term: string) => new RegExp('\\b' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(fieldLower));
+        if (matchingTerms.length > 0) {
+          textMatchIds.add(contact.id);
+          textMatchReasons.set(contact.id, `Text match: ${field.name} field contains '${field.value}'`);
+          break; // One match per contact is enough
+        }
+      }
+    }
+
     // Send entire compressed list to Claude
     const claudePrompt = `You are a personal network search assistant.
 The user is searching for: '${query}'
@@ -165,11 +202,21 @@ Return JSON only. No other text.`;
       rankedResults = JSON.parse(cleanedText);
       if (!Array.isArray(rankedResults)) {
         console.error('Claude response is not an array:', typeof rankedResults);
-        return NextResponse.json({ results: [], mode: 'ai' });
+        rankedResults = [];
       }
     } catch {
       console.error('Failed to parse Claude response:', responseText);
-      return NextResponse.json({ results: [], mode: 'ai' });
+      rankedResults = [];
+    }
+
+    // Merge Claude results with text pre-filter results (text matches fill gaps Claude missed)
+    const claudeIds = new Set(rankedResults.map((r) => r.id));
+    const textMatchArray = Array.from(textMatchIds);
+    for (let i = 0; i < textMatchArray.length; i++) {
+      const textId = textMatchArray[i];
+      if (!claudeIds.has(textId)) {
+        rankedResults.push({ id: textId, reasoning: textMatchReasons.get(textId) || 'Text match' });
+      }
     }
 
     // Fetch full contact details for matched IDs with authorization filter
@@ -209,7 +256,7 @@ Return JSON only. No other text.`;
     };
 
     if (truncated) {
-      response.warning = `Note: your full network exceeds the search limit. Showing results from your first ${includedCount.toLocaleString()} contacts only.`;
+      response.warning = `Note: AI search covered your first ${includedCount.toLocaleString()} contacts only. Some additional results may have been found via text matching.`;
     }
 
     return NextResponse.json(response);
