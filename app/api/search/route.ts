@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
         if (!field.value) continue;
         const fieldLower = field.value.toLowerCase();
         // Check if any query term appears in the field
-        const matchingTerms = queryTerms.filter((term: string) => fieldLower.includes(term));
+        const matchingTerms = queryTerms.filter((term: string) => new RegExp('\\b' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(fieldLower));
         if (matchingTerms.length > 0) {
           textMatchIds.add(contact.id);
           textMatchReasons.set(contact.id, `Text match: ${field.name} field contains '${field.value}'`);
@@ -256,7 +256,7 @@ Return JSON only. No other text.`;
     };
 
     if (truncated) {
-      response.warning = `Note: your full network exceeds the search limit. Showing results from your first ${includedCount.toLocaleString()} contacts only.`;
+      response.warning = `Note: AI search covered your first ${includedCount.toLocaleString()} contacts only. Some additional results may have been found via text matching.`;
     }
 
     return NextResponse.json(response);
