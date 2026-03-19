@@ -58,7 +58,7 @@ export default function EmbeddingProgress() {
   const percentage = status.total > 0 ? Math.round((status.embedded / status.total) * 100) : 0;
 
   return (
-    <div className="fixed bottom-6 right-6 bg-white rounded-2xl shadow-lg p-4 flex items-center gap-3 z-40 border border-gray-100">
+    <div className="fixed bottom-6 right-6 bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-4 flex items-center gap-3 z-40 border border-gray-100 dark:border-gray-800">
       <svg
         className="animate-spin h-4 w-4 text-accent flex-shrink-0"
         xmlns="http://www.w3.org/2000/svg"
@@ -80,10 +80,10 @@ export default function EmbeddingProgress() {
         />
       </svg>
       <div>
-        <p className="text-sm text-navy font-medium">
+        <p className="text-sm text-navy dark:text-white font-medium">
           Building search index...
         </p>
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-gray-400 dark:text-gray-500">
           {status.embedded.toLocaleString()} of {status.total.toLocaleString()} ({percentage}%)
         </p>
       </div>
