@@ -436,6 +436,7 @@ export async function POST(request: NextRequest) {
 
           // Stream Claude-ranked results
           let totalStreamed = earlyStreamedIds.size;
+          const claudeIncludedIds = new Set(claudeResults.map((r) => r.id));
           for (const result of claudeResults) {
             const contact = contactMap.get(result.id);
             if (!contact) continue;
@@ -461,6 +462,15 @@ export async function POST(request: NextRequest) {
                 encoder.encode(`event: result\ndata: ${JSON.stringify(rankedContact)}\n\n`)
               );
               totalStreamed++;
+            }
+          }
+
+          // Update reasoning for early-streamed contacts that Claude didn't include
+          for (const earlyId of Array.from(earlyStreamedIds)) {
+            if (!claudeIncludedIds.has(earlyId)) {
+              controller.enqueue(
+                encoder.encode(`event: update\ndata: ${JSON.stringify({ id: earlyId, reasoning: 'Matched via structured search' })}\n\n`)
+              );
             }
           }
 
