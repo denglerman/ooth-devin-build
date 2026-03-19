@@ -422,8 +422,10 @@ export async function POST(request: NextRequest) {
             }
           }
 
-          // Parse Claude's response
+          // Parse Claude's response — extract the JSON array even if
+          // Claude appended explanatory text after it (e.g. "[] \n\nThe query...")
           let claudeResults: { id: string; reasoning: string }[] = [];
+          let claudeParseFailed = false;
           try {
             const cleanedText = fullResponse
               .replace(/```json\n?/g, '')
@@ -432,10 +434,40 @@ export async function POST(request: NextRequest) {
             claudeResults = JSON.parse(cleanedText);
             if (!Array.isArray(claudeResults)) {
               claudeResults = [];
+              claudeParseFailed = true;
             }
           } catch {
-            console.error('Failed to parse Claude response:', fullResponse);
-            claudeResults = [];
+            // Claude may return JSON followed by explanatory text — try
+            // to extract the leading JSON array with a bracket-matching scan.
+            const trimmed = fullResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+            const start = trimmed.indexOf('[');
+            if (start !== -1) {
+              let depth = 0;
+              let end = -1;
+              for (let i = start; i < trimmed.length; i++) {
+                if (trimmed[i] === '[') depth++;
+                else if (trimmed[i] === ']') { depth--; if (depth === 0) { end = i; break; } }
+              }
+              if (end !== -1) {
+                try {
+                  claudeResults = JSON.parse(trimmed.slice(start, end + 1));
+                  if (!Array.isArray(claudeResults)) {
+                    claudeResults = [];
+                    claudeParseFailed = true;
+                  }
+                } catch {
+                  claudeResults = [];
+                  claudeParseFailed = true;
+                }
+              } else {
+                claudeParseFailed = true;
+              }
+            } else {
+              claudeParseFailed = true;
+            }
+            if (claudeParseFailed) {
+              console.error('Failed to parse Claude response:', fullResponse.slice(0, 500));
+            }
           }
 
           // Stream Claude-ranked results
@@ -478,9 +510,10 @@ export async function POST(request: NextRequest) {
             }
           }
 
-          // If Claude returned nothing but we had Layer 1/2 results,
-          // fall back to streaming the pre-filtered results
-          if (claudeResults.length === 0 && merged.length > 0) {
+          // Only fall back to pre-filtered results if Claude's response
+          // failed to parse. If Claude successfully returned [] it means
+          // it evaluated candidates and found none relevant — respect that.
+          if (claudeParseFailed && merged.length > 0) {
             for (const item of merged.slice(0, 20)) {
               if (earlyStreamedIds.has(item.id)) continue;
               const contact = contactMap.get(item.id);
