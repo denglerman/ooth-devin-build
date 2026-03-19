@@ -107,13 +107,19 @@ async function layer1Search(
     .select('alias, canonical_name');
 
   const queryLower = query.toLowerCase();
+  const queryWords = new Set(queryLower.split(/\s+/));
   const canonicalNames: string[] = [];
   if (aliases) {
     for (const a of aliases) {
-      if (queryLower.includes(a.alias.toLowerCase())) {
+      const aliasLower = a.alias.toLowerCase();
+      const canonicalLower = a.canonical_name.toLowerCase();
+      // Use word-boundary matching to avoid false positives with short aliases
+      const aliasRegex = new RegExp(`\\b${aliasLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`);
+      if (queryWords.has(aliasLower) || aliasRegex.test(queryLower)) {
         canonicalNames.push(a.canonical_name);
       }
-      if (queryLower.includes(a.canonical_name.toLowerCase())) {
+      const canonicalRegex = new RegExp(`\\b${canonicalLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`);
+      if (queryWords.has(canonicalLower) || canonicalRegex.test(queryLower)) {
         canonicalNames.push(a.alias);
       }
     }

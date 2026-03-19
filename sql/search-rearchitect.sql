@@ -75,7 +75,7 @@ INSERT INTO company_aliases (alias, canonical_name) VALUES
   ('kpmg', 'KPMG'),
   ('gs', 'Goldman Sachs'),
   ('jpm', 'JPMorgan Chase'),
-  ('ms', 'Morgan Stanley'),
+  ('morganstanley', 'Morgan Stanley'),
   ('boa', 'Bank of America'),
   ('citi', 'Citigroup'),
   ('yc', 'Y Combinator'),
