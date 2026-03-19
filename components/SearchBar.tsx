@@ -5,6 +5,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 type SearchBarProps = {
   onSearch: (query: string) => void;
   onClear: () => void;
+  onCancel?: () => void;
   isSearching: boolean;
   placeholder?: string;
 };
@@ -12,6 +13,7 @@ type SearchBarProps = {
 export default function SearchBar({
   onSearch,
   onClear,
+  onCancel,
   isSearching,
   placeholder = 'Search your network with AI... e.g. "investors in fintech" or "people I met in Berlin"',
 }: SearchBarProps) {
@@ -105,7 +107,7 @@ export default function SearchBar({
           className="w-full pl-12 pr-24 py-4 bg-card dark:bg-gray-800 rounded-2xl border-0 text-navy dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent/20 shadow-card text-base"
         />
         <div className="absolute inset-y-0 right-3 flex items-center gap-2">
-          {query && (
+          {query && !isSearching && (
             <button
               type="button"
               onClick={handleClear}
@@ -116,13 +118,23 @@ export default function SearchBar({
               </svg>
             </button>
           )}
-          <button
-            type="submit"
-            disabled={!query.trim() || isSearching}
-            className="px-4 py-2 bg-accent text-white rounded-xl text-sm font-medium hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            Search
-          </button>
+          {isSearching && onCancel ? (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            >
+              Cancel
+            </button>
+          ) : (
+            <button
+              type="submit"
+              disabled={!query.trim() || isSearching}
+              className="px-4 py-2 bg-accent text-white rounded-xl text-sm font-medium hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Search
+            </button>
+          )}
         </div>
       </div>
     </form>

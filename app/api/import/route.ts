@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin, getAuthUser } from '@/lib/supabase';
 import { parseCSV } from '@/lib/csvParser';
+import { generateEmbeddingsForContacts } from '@/lib/embeddings';
 
 export async function POST(request: NextRequest) {
   try {
@@ -73,6 +74,23 @@ export async function POST(request: NextRequest) {
       }
 
       imported += chunk.length;
+    }
+
+    // Generate embeddings in background (don't block the response)
+    // Fetch the newly inserted contacts with their IDs
+    if (imported > 0) {
+      const { data: insertedContacts } = await supabaseAdmin
+        .from('contacts')
+        .select('id, first_name, last_name, company, job_title, where_met, how_met, topics, ooth_notes, original_notes')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(imported);
+
+      if (insertedContacts && insertedContacts.length > 0) {
+        generateEmbeddingsForContacts(insertedContacts).catch((err) =>
+          console.error('Background embedding generation failed:', err)
+        );
+      }
     }
 
     return NextResponse.json({

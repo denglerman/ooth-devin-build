@@ -92,34 +92,107 @@ export default function Home() {
     setTimeout(() => setToast(null), 5000);
   };
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   const handleSearch = async (query: string) => {
+    // Cancel any in-flight search
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
     setIsSearching(true);
     setSearchMode(true);
     setSearchQuery(query);
+    setContacts([]);
+    setTotal(0);
+    setHasMore(false);
+    setSearchWarning(null);
 
     try {
       const response = await fetch('/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query, includeNetwork: networkFilter !== 'mine' }),
+        signal: abortController.signal,
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
+        const data = await response.json();
         showToast(data.error || 'Search failed', 'error');
+        setIsSearching(false);
         return;
       }
 
-      setContacts(data.results || []);
-      setTotal(data.results?.length || 0);
-      setHasMore(false);
-      setSearchWarning(data.warning || null);
-    } catch {
+      // Handle SSE streaming response
+      const reader = response.body?.getReader();
+      if (!reader) {
+        showToast('Search failed: no response stream', 'error');
+        setIsSearching(false);
+        return;
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        let currentEvent = '';
+        for (const line of lines) {
+          if (line.startsWith('event: ')) {
+            currentEvent = line.slice(7);
+          } else if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            try {
+              const parsed = JSON.parse(data);
+
+              if (currentEvent === 'result') {
+                setContacts((prev) => [...prev, parsed]);
+                setTotal((prev) => prev + 1);
+              } else if (currentEvent === 'update') {
+                // Update reasoning for an already-streamed contact
+                setContacts((prev) =>
+                  prev.map((c) =>
+                    c.id === parsed.id ? { ...c, reasoning: parsed.reasoning } : c
+                  )
+                );
+              } else if (currentEvent === 'done') {
+                setTotal(parsed.total);
+              } else if (currentEvent === 'error') {
+                showToast(parsed.error || 'Search failed', 'error');
+              }
+            } catch {
+              // Skip malformed JSON
+            }
+            currentEvent = '';
+          }
+        }
+      }
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        // Search was cancelled — ignore
+        return;
+      }
       showToast('Search failed', 'error');
     } finally {
       setIsSearching(false);
+      abortControllerRef.current = null;
     }
+  };
+
+  const handleCancelSearch = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsSearching(false);
   };
 
   const handleClearSearch = () => {
@@ -226,6 +299,7 @@ export default function Home() {
           <SearchBar
             onSearch={handleSearch}
             onClear={handleClearSearch}
+            onCancel={handleCancelSearch}
             isSearching={isSearching}
           />
         </div>
@@ -278,14 +352,29 @@ export default function Home() {
           )}
         </div>
 
-        {isLoading && contacts.length === 0 ? (
+        {isSearching && contacts.length === 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="bg-card dark:bg-gray-800/50 rounded-2xl p-6 shadow-card animate-pulse">
+                <div className="flex items-start gap-4">
+                  <div className="w-11 h-11 rounded-full bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : isLoading && contacts.length === 0 ? (
           <div className="flex items-center justify-center py-20">
             <svg className="animate-spin h-8 w-8 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
           </div>
-        ) : contacts.length === 0 ? (
+        ) : contacts.length === 0 && !isSearching ? (
           <div className="text-center py-20">
             <div className="w-16 h-16 rounded-full bg-card dark:bg-gray-800 mx-auto mb-4 flex items-center justify-center">
               <svg className="h-8 w-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
