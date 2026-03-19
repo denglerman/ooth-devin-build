@@ -95,13 +95,20 @@ export async function generateEmbeddingsForContacts(
 
   for (let i = 0; i < contacts.length; i += BATCH_SIZE) {
     const batch = contacts.slice(i, i + BATCH_SIZE);
-    const texts = batch.map((c) => contactToText(c) || 'empty');
+    // Filter out contacts with no meaningful text to embed
+    const batchWithText = batch
+      .map((c, idx) => ({ contact: c, text: contactToText(c), idx }))
+      .filter((item) => item.text.trim() !== '');
+
+    if (batchWithText.length === 0) continue;
+
+    const texts = batchWithText.map((item) => item.text);
 
     try {
       const embeddings = await generateEmbeddings(texts);
 
-      const updates = batch.map((c, idx) => ({
-        id: c.id!,
+      const updates = batchWithText.map((item, idx) => ({
+        id: item.contact.id!,
         embedding: embeddings[idx],
       }));
 

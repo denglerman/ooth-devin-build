@@ -48,7 +48,8 @@ CREATE TABLE IF NOT EXISTS company_aliases (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   alias text NOT NULL,
   canonical_name text NOT NULL,
-  created_at timestamptz DEFAULT now()
+  created_at timestamptz DEFAULT now(),
+  UNIQUE(alias, canonical_name)
 );
 
 -- Seed common aliases
