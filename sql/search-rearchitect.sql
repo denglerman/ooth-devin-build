@@ -33,7 +33,7 @@ CREATE INDEX IF NOT EXISTS contacts_title_trgm ON contacts USING gin(job_title g
 -- For millions of contacts, increase lists to 100+
 DO $$
 BEGIN
-  IF (SELECT count(*) FROM contacts WHERE embedding IS NOT NULL) >= 100 THEN
+  IF (SELECT count(*) FROM contacts WHERE embedding IS NOT NULL) >= 1000 THEN
     DROP INDEX IF EXISTS contacts_embedding_idx;
     CREATE INDEX contacts_embedding_idx ON contacts USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
   ELSE
