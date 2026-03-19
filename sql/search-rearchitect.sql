@@ -1,6 +1,9 @@
 -- Search Rearchitecture SQL Migration
 -- Run this in Supabase SQL Editor before deploying the new search
 
+-- Increase memory limit for index creation (requires Supabase Pro or higher)
+SET maintenance_work_mem = '256MB';
+
 -- 1. Enable pg_trgm extension for fuzzy matching
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
