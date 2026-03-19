@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin, getAuthUser } from '@/lib/supabase';
+import { generateEmbeddingForContact } from '@/lib/embeddings';
 
 export async function GET(
   _request: NextRequest,
@@ -120,6 +121,13 @@ export async function PUT(
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Generate embedding in background (don't block the response)
+    if (data) {
+      generateEmbeddingForContact(data).catch((err) =>
+        console.error('Background embedding generation failed:', err)
+      );
     }
 
     return NextResponse.json(data);

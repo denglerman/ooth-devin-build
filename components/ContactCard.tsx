@@ -32,7 +32,7 @@ export default function ContactCard({
 
   return (
     <Link href={`/contact/${id}`}>
-      <div className="bg-card dark:bg-gray-800/50 rounded-2xl p-6 shadow-card hover:shadow-card-hover transition-all duration-200 cursor-pointer group">
+      <div className="bg-card dark:bg-gray-800/50 rounded-2xl p-6 shadow-card hover:shadow-card-hover transition-all duration-200 cursor-pointer group animate-fade-in">
         <div className="flex items-start gap-4">
           <div className="w-11 h-11 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
             <span className="text-accent font-semibold text-sm">{initials}</span>

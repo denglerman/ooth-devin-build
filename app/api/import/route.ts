@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin, getAuthUser } from '@/lib/supabase';
 import { parseCSV } from '@/lib/csvParser';
+import { generateEmbeddingsForContacts } from '@/lib/embeddings';
 
 export async function POST(request: NextRequest) {
   try {
@@ -56,13 +57,17 @@ export async function POST(request: NextRequest) {
       user_id: user.id,
     }));
 
-    // Batch insert in chunks of 500
+    // Batch insert in chunks of 500, collecting inserted contacts for embedding generation
     const chunkSize = 500;
     let imported = 0;
+    const allInserted: { id: string; first_name: string | null; last_name: string | null; company: string | null; job_title: string | null; where_met: string | null; how_met: string | null; topics: string | null; ooth_notes: string | null; original_notes: string | null }[] = [];
 
     for (let i = 0; i < contactsWithUser.length; i += chunkSize) {
       const chunk = contactsWithUser.slice(i, i + chunkSize);
-      const { error } = await supabaseAdmin.from('contacts').insert(chunk);
+      const { data: insertedChunk, error } = await supabaseAdmin
+        .from('contacts')
+        .insert(chunk)
+        .select('id, first_name, last_name, company, job_title, where_met, how_met, topics, ooth_notes, original_notes');
 
       if (error) {
         console.error('Insert error:', error);
@@ -73,6 +78,16 @@ export async function POST(request: NextRequest) {
       }
 
       imported += chunk.length;
+      if (insertedChunk) {
+        allInserted.push(...insertedChunk);
+      }
+    }
+
+    // Generate embeddings in background (fire-and-forget, don't block the response)
+    if (allInserted.length > 0) {
+      generateEmbeddingsForContacts(allInserted).catch((err) =>
+        console.error('Background embedding generation failed:', err)
+      );
     }
 
     return NextResponse.json({
